@@ -98,7 +98,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
         case WStype_BIN:
             Serial.printf("[%u] get binary lenght: %u\n", num, plength);
             hexdump(payload, plength);
-            webSocket.sendBIN(num, payload, length);
+            webSocket.sendBIN(num, payload, plength);
             break;
     }
 }
