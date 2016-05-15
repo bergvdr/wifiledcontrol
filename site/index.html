@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>WifiLEDControl</title>
+
+        <link rel="shortcut icon" href="/favicon.ico">
+        <link href='https://fonts.googleapis.com/css?family=Noto+Sans' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        <link rel="stylesheet" href="main.css" type="text/css">
+        <link rel="apple-touch-icon" sizes="57x57" href="/static/ico/apple-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="/static/ico/apple-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="/static/ico/apple-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="/static/ico/apple-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="/static/ico/apple-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="/static/ico/apple-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="/static/ico/apple-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="/static/ico/apple-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/ico/apple-icon-180x180.png">
+        <link rel="icon" type="image/png" sizes="192x192"  href="/static/ico/android-icon-192x192.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/ico/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="96x96" href="/static/ico/favicon-96x96.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/ico/favicon-16x16.png">
+        <link rel="manifest" href="/static/ico/manifest.json">
+        <meta name="msapplication-TileColor" content="#ffffff">
+        <meta name="msapplication-TileImage" content="/static/ico/ms-icon-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+    </head>
+
+    <body style="display:none;">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a id="websitename" class="navbar-brand" href="#">WifiLEDControl</a>
+                </div>
+
+                <div class="collapse navbar-collapse" id="navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a data-toggle="collapse" href="#home">Home</a></li>
+                        <li><a data-toggle="collapse" href="#singlecolor">Single Color</a></li>
+                        <li><a data-toggle="collapse" href="#gradient">Gradient</a></li>
+                        <li><a data-toggle="collapse" href="#individual">Individual</a></li>
+                        <li><a id="settingstext" data-toggle="collapse" href="#settings">Settings</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container collapse in" id="home">
+            <div class="jumbotron">
+                <h1>WifiLED Control</h1>
+                <p>A simple webpage to control LEDs attached to a TCP enabled microcontroller using websockets.</p>
+            </div>
+        </div>
+
+        <div class="container collapse" id="singlecolor"></div>
+
+        <div class="container collapse" id="gradient">
+            <div id="gradientbox" class="gradientbox"></div>
+            <br />
+            <div class="border row">
+                <div class="border col-md-6" id="gradientleftcol"></div>
+                <div class="border col-md-6" id="gradientrightcol"></div>
+            </div>
+            <br />
+        </div>
+
+        <div class="container collapse" id="settings">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div id="settingslinks" class="list-group" id="sidebar">
+                            <a href="#status" class="list-group-item">Status</a>
+                            <a href="#websocketconf" class="list-group-item">Websocket configuration</a>
+                            <a href="#ledconf" class="list-group-item">LED configuration</a>
+                            <a href="#wificonf" class="list-group-item">Wifi configuration</a>
+                            <a href="#outputmode" class="list-group-item">Settings of output modes</a>
+                            <a href="#console" class="list-group-item">Console</a>
+                            <a href="#diagnostics" class="list-group-item">Diagnostics</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h2 id="status">Status</h2>
+                        <p>Websocket <strong id='ws1'>ws1</strong> 
+                        <span class="hidden" id="connected">
+                            <span class="label label-success">Connected</span>
+                            <span class="badge">42 Hz</span>
+                        </span>
+                        <span class="hidden" id="notconnected">
+                            <span class="label label-danger">No connection!</span>
+                        </span>
+                        </p>
+                        <!--
+                            <p>Websocket <strong>other ip </strong> 
+                            <span class="label label-danger">Cannot connect!</span>
+                            </p>
+                        -->
+                        <div class="form-group">
+                            <label for="messages">Messages:</label>
+                            <textarea class="form-control" rows="10" id="messages"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <a role="button" class="btn btn-info" id="pingbutton">Ping</a>
+                            <a role="button" class="btn btn-info" id="heapbutton">Heap</a>
+                            <a role="button" class="btn btn-info" id="clearbutton">Clear</a>
+                        </div>
+                        <div class="form-group">
+                            <label for="websocket1name">Websocket Name (eg.  Livingroom):</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="websocket1namedesc">→</span>
+                                <input type="text" id="websocket1name" class="form-control" aria-describedby="websocket1namedesc">
+                            </div>
+                        </div>
+                        <hr class="col-md-12">
+
+                        <h2 id="websocketconf">Websocket Configuration</h2>
+                        <p>Specify the websocketserver to connect to.</p>
+                        <div class="form-group">
+                            <label for="websocket1">Websocket #1 IP or hostname:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="websocket1desc">></span>
+                                <input type="text" id="websocket1" class="form-control" aria-describedby="websocket1desc">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <a role="button" class="btn btn-info" id="websocket1button">Apply</a>
+                        </div>
+                        <hr class="col-md-12">
+
+                        <h2 id="ledconf">LED Configuration</h2>
+                        <p>Specify the layout of attached LED matrix or strip here.</p>
+                        <div class="form-group">
+                            <label for="individualcolumns">Columns:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="nrofcolumnsdesc">#</span>
+                                <input type="text" id="individualcolumns" class="form-control" aria-describedby="nrofcolumsdesc" value="8">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="individualrows">Rows:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="nrofrowsdesc">#</span>
+                                <input type="text" id="individualrows" class="form-control" aria-describedby="nrofrowsdesc" value="8">
+                            </div>
+                        </div>
+                        <p>You can also set the PIN to send the configuration to</p>
+                        <div class="form-group">
+                            <label for="pinout">Pin:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="pinoutdesc">|</span>
+                                <input type="text" id="pinout" class="form-control" aria-describedby="pinoutdesc">
+                            </div>
+                        </div>
+                        <hr class="col-md-12">
+
+                        <h2 id="wificonf">Wifi Configuration</h2>
+                        <p>Here you can change the wireless network the microcontroller connects to or reset the configuration such that it will start in access-point (AP) mode again.</p>
+                        <div class="form-group">
+                            <label for="wifissid">Set the name of the access point to connect to:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="wifissiddesc">SSID</span>
+                                <input type="text" id="wifissid" class="form-control" aria-describedby="wifissiddesc">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="wifipassword">Password:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="wifipassworddesc">*</span>
+                                <input type="text" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info">Scan</button>
+                            <button type="button" class="btn btn-warning">Apply</button>
+                            <button type="button" class="btn btn-danger">Reset</button>
+                        </div>
+
+                        </p><hr class="col-md-12">
+                        <h2 id="outputmode">Settings of output modes</h2>
+                        <h3>Single color</h3>
+                        <p>Apply on all pixels or set all black and update one by one</p>
+                        <div class="radio">
+                            <label><input type="radio" id="all" checked="checked" name="singlecolormode">Update all pixels at once</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" id="one" name="singlecolormode">Update consecutive pixels</label>
+                        </div>
+
+                        <h3>Gradient</h3>
+                        <p>Change the orientation of the gradient effect. This only applies to the pixels not to the display on this webpage.</p>
+                        <div class="radio">
+                            <label><input type="radio" id="lefttoright" checked="checked" name="gradientorientation">Left to right</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" id="toptobottom" name="gradientorientation">Update consecutive pixels</label>
+                        </div>
+                        <h3>Individual color</h3>
+                        <p>Choose the initial configuration of the individual mode. Rainbow</p>
+                        <div class="radio">
+                            <label><input type="radio" id="rainbow" checked="checked" name="individualmode">Rainbow</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" id="alloff" name="individualmode">All off</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" id="random" name="individualmode">Random</label>
+                        </div>
+                        <h3>Text send </h3>
+                        <p>Change how text is displayed on the LED strip.</p>
+                        <div class="radio">
+                            <label><input type="radio" id="onebyone" checked="checked" name="textmode">One by one</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" id="scroll" name="textmode">Scroll</label>
+                        </div>
+
+
+
+                        <h2>Firmware update</h2>
+                        <p>All of the settings for time zone and daylight savings.</p>
+                        <hr class="col-md-12">
+
+                        <h2 id="console">Serial Console</h2>
+                        <div class="form-group">
+                            <label for="serialconsole">Serial console:</label>
+                            <textarea class="form-control" rows="10" id="serialconsole"></textarea>
+                        </div>
+                        <hr class="col-md-12">
+
+                        <h2 id="diagnostics">Diagnostics</h2>
+                        <p>Run various diagnostics. Output is displayed in the console
+                        above.</p>
+                        <button class="btn btn-info" contenteditable="false">Run Network Diagnostic</button>
+
+                        <!-- More ideas
+                            <h3>Binary send </h3>
+                            <p>Send bytes straight to the pixels</p>
+                            <h2>Font output</h2>
+                            <p>The text that will be sent will use the following font</p>
+                            <p>Upload font</p>
+                            <h2>Websocket Grouping</h2>
+                            <h2>Time and date settings</h2>
+                            <p>All of the settings for time zone and daylight savings.
+
+                        -->
+                    </div>
+                    <div class="span9"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- this one needs to be last for some reason, related to responsive table-->
+        <div class="container collapse" id="individual">
+            <div class="row">
+                <div class="col-lg-6">
+                    <label for="saturation">Saturation:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="saturationdesc">%</span>
+                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="90">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <label for="value">Value:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="valuedesc">%</span>
+                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="80">
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="table-responsive">
+                <table id="individualcontainer" class="table"></table>
+                <div>
+                </div>
+
+
+                <script src='http://jscolor.com/release/2.0/jscolor-2.0.4/jscolor.js'></script>
+                <script src='http://code.jquery.com/jquery-1.12.3.min.js'></script>
+                <script>window.jQuery || document.write('<script src="/static/js/jquery.min.js"><\/script>')</script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+                <script src='main.js'></script>
+    </body>
+</html>
