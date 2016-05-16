@@ -67,8 +67,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                         sprintf(buf, "s%u", ++payload);
                         webSocket.sendTXT(num, payload);
                         Serial.printf("[%u] Got single color: %s\n", num, payload);
-                        RgbColor singlecolor(payload);
-                        strip.clearTo(singlecolor);
+                        RgbColor singlecolor(*payload);
+                        strip.ClearTo(singlecolor);
+                        strip.Show();
                     } else {
                         webSocket.sendTXT(num,"too short");  
                     }
