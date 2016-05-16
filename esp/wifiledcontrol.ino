@@ -67,6 +67,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                         sprintf(buf, "s%u", ++payload);
                         webSocket.sendTXT(num, payload);
                         Serial.printf("[%u] Got single color: %s\n", num, payload);
+                        RgbColor singlecolor(payload);
+                        strip.clearTo(singlecolor);
                     } else {
                         webSocket.sendTXT(num,"too short");  
                     }
@@ -103,7 +105,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
     }
 }
 
-
 void configModeCallback (WiFiManager *myWiFiManager) {
     Serial.println("Entered config mode");
     Serial.println(WiFi.softAPIP());
@@ -134,6 +135,10 @@ void setup() {
     // Start Websocket
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
+
+    // Reset LED strip
+    strip.Begin();
+    strip.Show();
 }
 
 void loop() {
