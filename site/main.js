@@ -67,7 +67,7 @@ function onMessage(evt) {
  * === Send Data to Websocket
  */
 function sendsinglecolor(color) {
-    mysocket.send('s'+color);
+    mysocket.send('s'+color.rgb[0]+color.rgb[1]+color.rgb[2]);
 }
 
 function sendgrad() {
