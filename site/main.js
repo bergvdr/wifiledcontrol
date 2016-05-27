@@ -25,7 +25,7 @@ if(ws1 == undefined || ws1 == '') {
 
 //Set up the websocket connection
 var mysocket = new WebSocket(ws1);
-var heartbeat_msg = 'p', heartbeat_interval = null, missed_heartbeats = 0;
+var heartbeat_msg = '>', heartbeat_interval = null, missed_heartbeats = 0;
 
 //Prepare a charset (source http://pastebin.com/wHx3ZYm9)
 var charset = [

@@ -93,16 +93,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
              */
             switch(payload[0]){
                 char buf[10]; //Output buffer for small messages
-                case 's': case 'S': // Set pixels to a single color
-                    if(plength == 4) {
-                        strip.ClearTo(RgbColor(payload[1],payload[2],payload[3]));
-                        strip.Show();  
-                        Serial.printf("[%u] Single color: %s\n", num, payload);
-                    } else {
-                        webSocket.sendTXT(num,"EInvalid singecolor send");  
-                        Serial.printf("[%u] ERROR: Single color: %s with length %u\n", num, payload, plength);
-                    }
-                    break;
                 case 'd': case 'D': // Configure delay
 					delay_amount = charstr2int(++payload, plength-1);
                     webSocket.sendTXT(num,"IUpdated delay value");  
@@ -112,47 +102,11 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                     sprintf(buf, "h%lu", ESP.getFreeHeap());
                     webSocket.sendTXT(num, buf);
                     Serial.printf("[%u] Requested free heap size: [%u]\n",num, ESP.getFreeHeap());
-                    /* This is just for testing purposes */
-                    strip.ClearTo(red);
-                    strip.Show();
                     break;
-                case 'I': // Set the pixels all at once
-                    /*
-                     * Expected payload: [uint8_t red, uint8_t green, uint8_t blue]
-                     * in consecutive order for every pixel
-                     */
-                    if(plength == PixelCount*3+1) {
-                        strip.ClearTo(black);
-                        payload++;
-                        for(uint16_t i=0; i < PixelCount; i++) {
-                            strip.SetPixelColor(i,RgbColor(*payload++,*payload++,*payload++));
-                        }
-                        strip.Show();
-                    } else {
-                        webSocket.sendTXT(num,"Einvalid individual colors send");
-                        Serial.printf("[%u] ERROR: Individuals: %s with length %u\n", num, payload, plength);
-                    }
-                    break;
-                case 'i': // Set just one pixel
-                    Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
-                    /*
-                     * Expected payload: [uint8_t rownr, uint8_t colnr, uint8_t
-                     * red, uint8_t green, uint8_t blue]
-                     */
-                    if(plength == 6) {
-                        payload++;
-                        strip.SetPixelColor(topo.Map(*payload++ - '0', *payload++ - '0'),
-                            RgbColor(*payload++, *payload++, *payload));
-                    } else {
-                        webSocket.sendTXT(num,"Einvalid individual color send");
-                        Serial.printf("[%u] ERROR: Individual color: %s with length %u\n", num, payload, plength);
-                    }
-                    strip.Show();
-                    break;
-                case 'p': case 'P': // ping, will reply 'a' to show we are alive
-                    Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
+                case '>': // ping, will reply '<' to show we are alive
+                    // Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
                     if(plength > 1) {
-                        if(strcmp( (const char*) ++payload,"ping")==0) {
+                        if(strcmp( (const char*) ++payload, "ping") == 0) {
                             webSocket.sendTXT(num, "pong");
                             strip.ClearTo(black);
                             strip.Show();
@@ -166,7 +120,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                     break;
                 default:
                     Serial.printf("[%u] Unknown command: %s with length %u\n", num, payload, plength);
-                    webSocket.sendTXT(num, "Eunknown command!\n");
+                    webSocket.sendTXT(num, "EUnknown command!\n");
                     break;
             }
             break;
@@ -179,9 +133,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
             //Serial.printf("[%u] got binary length: %u\n", num, plength); //Debug
 
 			switch(plength) {
-				case 1: // Received a ping, send back a pong
-                    webSocket.sendTXT(num, "<");  
-					break;
 				case 3: // Received a single color, three uint8 representing RGB values
 					strip.ClearTo(RgbColor(payload[0], payload[1], payload[2]));
 					strip.Show();
