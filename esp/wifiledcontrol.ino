@@ -22,27 +22,49 @@
  */
 
 //Neopixel related
-const uint16_t PixelCount = 7; // this example assumes 4 pixels, making it smaller will cause a failure
+typedef ColumnMajorLayout MyPanelLayout;
+const uint8_t PanelWidth = 8;  // 8 pixel x 8 pixel matrix of leds
+const uint8_t PanelHeight = 8;
 const uint8_t PixelPin = 2;  // make sure to set this to the correct pin, ignored for Esp8266
+NeoTopology<MyPanelLayout> topo(PanelWidth, PanelHeight);
+
+const uint16_t PixelCount = PanelWidth * PanelHeight;
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+
+const uint16_t left = 0;
+const uint16_t right = PanelWidth - 1;
+const uint16_t top = 0;
+const uint16_t bottom = PanelHeight - 1;
 
 //Colors
 #define colorSaturation 128
-RgbColor red(colorSaturation, 0, 0);
-RgbColor green(0, colorSaturation, 0);
-RgbColor blue(0, 0, colorSaturation);
-RgbColor white(colorSaturation);
+RgbColor red(colorSaturation/4, 0, 0);
+RgbColor green(0, colorSaturation/4, 0);
 RgbColor black(0);
-HslColor hslRed(red);
-HslColor hslGreen(green);
-HslColor hslBlue(blue);
-HslColor hslWhite(white);
-HslColor hslBlack(black);
 
 //Websocket
 WebSocketsServer webSocket = WebSocketsServer(81);
 
+//User editable settings
+uint32_t delay_amount = 500;
+
+uint32_t charstr2int(uint8_t *charstr, size_t length) {
+	uint32_t result = 0;
+	for(uint8_t pos =0; pos<length; pos++) {
+		char c = *charstr;
+		if (c >= '0' && c <= '9') {
+			result *= 10;
+			result += c - '0';
+		}
+		charstr++;
+	}
+	return result;
+}
+
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plength) {
+	uint8_t row = 0;
+	uint8_t col = 0;
+
     switch(type) {
         case WStype_DISCONNECTED:
             Serial.printf("[%u] Disconnected!\n", num);
@@ -52,6 +74,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                 IPAddress ip = webSocket.remoteIP(num);
                 webSocket.sendTXT(num, "Connected");
                 Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+				strip.ClearTo(black); //Set some initial configuration so you can orient the board
+                strip.SetPixelColor(topo.Map(left, top), green);
+                strip.SetPixelColor(topo.Map(right, top), red);
+                strip.SetPixelColor(topo.Map(left, bottom), red);
+                strip.SetPixelColor(topo.Map(right, bottom), black);
+                strip.Show();
             }
             break;
         case WStype_TEXT:
@@ -59,65 +87,89 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
              * We cannot reply to every incoming message, maybe because the receive/send buffers get full?
              * This can be easily seen if many 'singlecolor' messages are send to the server
              * There are also problem with large packets
+			 *
+			 * So I try to send only answers to changes in settings.
+			 * Updating the LEDs is done in a binary message and without sending an reply
              */
             switch(payload[0]){
                 char buf[10]; //Output buffer for small messages
-                case 's': case 'S': // Set pixels to a single color
-                    if(plength == 7) {
-                        sprintf(buf, "s%u", ++payload);
-                        webSocket.sendTXT(num, payload);
-                        Serial.printf("[%u] Got single color: %s\n", num, payload);
-                        //RgbColor singlecolor(*payload);
-                        //strip.ClearTo(singlecolor);
-                        strip.ClearTo(RgbColor(*payload));
-                        strip.Show();
-                    } else {
-                        webSocket.sendTXT(num,"too short");  
-                    }
-                    // TODO send the singlecolor to the pixels
+                case 'd': case 'D': // Configure delay
+					delay_amount = charstr2int(++payload, plength-1);
+                    webSocket.sendTXT(num,"IUpdated delay value");  
+					Serial.printf("[%u] INFO: Delay: %u with length %u\n", num, delay_amount, plength);
                     break;
                 case 'h': case 'H': // Request free heap size
                     sprintf(buf, "h%lu", ESP.getFreeHeap());
                     webSocket.sendTXT(num, buf);
-                    Serial.printf("Heap: [%u]\n",ESP.getFreeHeap());
+                    Serial.printf("[%u] Requested free heap size: [%u]\n",num, ESP.getFreeHeap());
                     break;
-                case 'p': case 'P': // ping, will reply 'a' to show we are alive
-                    Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
+                case '>': // ping, will reply '<' to show we are alive
+                    // Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
                     if(plength > 1) {
-                        if(strcmp( (const char*) ++payload,"ping")==0) {
+                        if(strcmp( (const char*) ++payload, "ping") == 0) {
                             webSocket.sendTXT(num, "pong");
+                            strip.ClearTo(black);
+                            strip.Show();
                         } else {
                             webSocket.sendTXT(num, payload);
                         }
                     } else {
-                        webSocket.sendTXT(num,"a");  
+                        webSocket.sendTXT(num,"<");  
                     }
-                    break;
-                case 'w': case 'W': // Change wifi settings
-                    Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
-                    if(plength > 1) {
-                        if(strcmp( (const char*) ++payload,"reset")==0) {
-                            webSocket.sendTXT(num, "Resetting wifi...");
-                            WiFiManager wifiManager;
-                            WifiManager.resetSettings();
-                        } else {
-                            webSocket.sendTXT(num, "Changing wifi to SSID:");
-                            webSocket.sendTXT(num, payload);
-                        }
-                    } else {
-                        webSocket.sendTXT(num,"a");  
-                    }
+                    
                     break;
                 default:
                     Serial.printf("[%u] Unknown command: %s with length %u\n", num, payload, plength);
-                    webSocket.sendTXT(num, "Eunknown command!\n");
+                    webSocket.sendTXT(num, "EUnknown command!\n");
                     break;
             }
             break;
         case WStype_BIN:
-            Serial.printf("[%u] get binary lenght: %u\n", num, plength);
-            hexdump(payload, plength);
-            webSocket.sendBIN(num, payload, plength);
+			/*
+			 * We process mostly binary data
+			 *
+			 */
+
+            //Serial.printf("[%u] got binary length: %u\n", num, plength); //Debug
+
+			switch(plength) {
+				case 3: // Received a single color, three uint8 representing RGB values
+					strip.ClearTo(RgbColor(payload[0], payload[1], payload[2]));
+					strip.Show();
+					break;
+				case 5: // Received a pixel index (row, col) and RGB color
+                    strip.SetPixelColor(topo.Map(payload[0],payload[1]), 
+						RgbColor(payload[2], payload[3], payload[4]));
+					strip.Show();
+					break;
+				case PixelCount * 3: // Received an entire board/strip of RGB values
+					for(uint16_t i = 0; i < PixelCount; i++) {
+						strip.SetPixelColor(i, RgbColor(*payload++, *payload++, *payload++));
+					}
+					strip.Show();
+					break;
+                default:
+					if(plength > PixelCount*3 && (plength % (PixelCount*3)) == 0) {
+						/* 
+						 * Multiple entire board/strips received
+						 * Display them with configured delay
+						 */
+						for(uint16_t j = 0; j < plength/(PixelCount*3); j++) {
+							strip.ClearTo(black);
+							strip.Show();
+							for(uint16_t i = 0; i < PixelCount; i++) {
+								strip.SetPixelColor(i, RgbColor(*payload++, *payload++, *payload++));
+							}
+							strip.Show();
+							delay(delay_amount); // TODO: change this so the esp doesn't hang
+							webSocket.sendTXT(num, "<"); //Send a ping because the delay is blocking  
+						}
+					} else {
+						Serial.printf("[%u] Unknown command with length %u\n", num, plength);
+						webSocket.sendTXT(num, "Eunknown command!\n");
+					}
+                    break;
+			}
             break;
     }
 }
@@ -137,7 +189,7 @@ void setup() {
     // WiFi
     WiFiManager wifiManager;
     // Reset settings - for testing
-    // WifiManager.resetSettings();
+    //wifiManager.resetSettings();
     wifiManager.setAPCallback(configModeCallback);
     if(!wifiManager.autoConnect("WifiLedControl","ledblink")) {
         Serial.println("failed to connect and hit timeout");
@@ -155,6 +207,7 @@ void setup() {
 
     // Reset LED strip
     strip.Begin();
+    strip.ClearTo(green);
     strip.Show();
 }
 

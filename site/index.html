@@ -49,6 +49,7 @@
                         <li><a data-toggle="collapse" href="#singlecolor">Single Color</a></li>
                         <li><a data-toggle="collapse" href="#gradient">Gradient</a></li>
                         <li><a data-toggle="collapse" href="#individual">Individual</a></li>
+                        <li><a data-toggle="collapse" href="#character">Character</a></li>
                         <li><a id="settingstext" data-toggle="collapse" href="#settings">Settings</a></li>
                     </ul>
                 </div>
@@ -74,34 +75,24 @@
             <br />
         </div>
 
-        <div class="container collapse" id="individual">
-            <div class="row">
-                <div class="col-lg-6">
-                    <label for="saturation">Saturation:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="saturationdesc">%</span>
-                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="90">
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <label for="value">Value:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="valuedesc">%</span>
-                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="80">
-                    </div>
-                </div>
-            </div>
-            <br />
-            <div class="table-responsive">
-                <table id="individualcontainer" class="table"></table>
-            </div>
+        <div class="container collapse" id="character">
+			<div class="col-md-6">
+				<div class="input-group">
+					<span class="input-group-addon" id="characterinputdesc">→</span>
+					<input type="text" id="characters" class="form-control" aria-describedby="characterinputdesc">
+ 					<span class="input-group-btn">
+						<a role="button" class="btn btn-success" id="characterbutton">Send</a>
+					</span>
+				</div>
+			</div>
         </div>
+
 
         <div class="container collapse" id="settings">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-3" id="settingslinks">
-                        <div class="list-group">
+                    <div class="col-md-3">
+                        <div id="settingslinks" class="list-group" id="sidebar">
                             <a href="#status" class="list-group-item">Status</a>
                             <a href="#websocketconf" class="list-group-item">Websocket configuration</a>
                             <a href="#ledconf" class="list-group-item">LED configuration</a>
@@ -111,7 +102,7 @@
                             <a href="#diagnostics" class="list-group-item">Diagnostics</a>
                         </div>
                     </div>
-                    <div class="col-md-6" id="settingscontent">
+                    <div class="col-md-6">
                         <h2 id="status">Status</h2>
                         <p>Websocket <strong id='ws1'>ws1</strong> 
                         <span class="hidden" id="connected">
@@ -159,6 +150,7 @@
                         </div>
                         <hr class="col-md-12">
 
+                        <h1 id="notice">TODO: Everything below here isn't implemented yet</h1>
                         <h2 id="ledconf">LED Configuration</h2>
                         <p>Specify the layout of attached LED matrix or strip here.</p>
                         <div class="form-group">
@@ -198,7 +190,7 @@
                             <label for="wifipassword">Password:</label>
                             <div class="input-group">
                                 <span class="input-group-addon" id="wifipassworddesc">*</span>
-                                <input type="password" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
+                                <input type="text" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
                             </div>
                         </div>
                         <div class="form-group">
@@ -206,8 +198,8 @@
                             <button type="button" class="btn btn-warning">Apply</button>
                             <button type="button" class="btn btn-danger">Reset</button>
                         </div>
-                        <hr class="col-md-12">
 
+                        </p><hr class="col-md-12">
                         <h2 id="outputmode">Settings of output modes</h2>
                         <h3>Single color</h3>
                         <p>Apply on all pixels or set all black and update one by one</p>
@@ -224,7 +216,7 @@
                             <label><input type="radio" id="lefttoright" checked="checked" name="gradientorientation">Left to right</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" id="toptobottom" name="gradientorientation">Update consecutive pixels</label>
+                            <label><input type="radio" id="toptobottom" name="gradientorientation">Up to down</label>
                         </div>
                         <h3>Individual color</h3>
                         <p>Choose the initial configuration of the individual mode. Rainbow</p>
@@ -236,6 +228,18 @@
                         </div>
                         <div class="radio">
                             <label><input type="radio" id="random" name="individualmode">Random</label>
+                        </div>
+                        <h3>Character</h3>
+                        <p>Configure the delay that is used when displaying multiple characters</p>
+                        <div class="form-group">
+                            <label for="characterdelay">Delay:</label>
+                            <div class="input-group">
+                                <input type="text" id="characterdelay" class="form-control" aria-describedby="characterdelaydesc">
+                                <span class="input-group-addon" id="characterdelaydesc">ms</span>
+                            </div>
+							<div class="form-group">
+								<button type="button" class="btn btn-info" id="applydelay">Apply</button>
+							</div>
                         </div>
                         <h3>Text send </h3>
                         <p>Change how text is displayed on the LED strip.</p>
@@ -281,6 +285,29 @@
             </div>
         </div>
 
+        <!-- this one needs to be last for some reason, related to responsive table-->
+        <div class="container collapse" id="individual">
+            <div class="row">
+                <div class="col-lg-6">
+                    <label for="saturation">Saturation:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="saturationdesc">%</span>
+                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="92">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <label for="value">Value:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="valuedesc">%</span>
+                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="16">
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="table-responsive">
+                <table id="individualcontainer" class="table"></table>
+                <div>
+                </div>
 
 
                 <script src='http://jscolor.com/release/2.0/jscolor-2.0.4/jscolor.js'></script>
