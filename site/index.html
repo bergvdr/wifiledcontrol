@@ -75,18 +75,74 @@
             <br />
         </div>
 
+        <div class="container collapse" id="individual">
+            <div class="row">
+                <div class="col-md-4">
+					<div class="input-group">
+                    <label for="saturation">Mode:</label>
+                        <div class="radio">
+                            <label><input type="radio" id="rainbow" checked="checked" name="individualmode">Rainbow</label>
+                            <label><input type="radio" id="off" name="individualmode">All off</label>
+                            <label><input type="radio" id="random" name="individualmode">Random</label>
+                        </div>
+					</div>
+                </div>
+                <div class="col-md-4">
+                    <label for="saturation">Saturation:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="saturationdesc">%</span>
+                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="92">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="value">Value:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="valuedesc">%</span>
+                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="16">
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <div class="table-responsive">
+                <table id="individualcontainer" class="table"></table>
+			</div>
+		</div>
+
         <div class="container collapse" id="character">
-			<div class="col-md-6">
-				<div class="input-group">
-					<span class="input-group-addon" id="characterinputdesc">→</span>
-					<input type="text" id="characters" class="form-control" aria-describedby="characterinputdesc">
- 					<span class="input-group-btn">
-						<a role="button" class="btn btn-success" id="characterbutton">Send</a>
-					</span>
+			<div id="charactercolorplace"></div>
+			<br />
+			<div class="row">
+				<div class="col-md-8">
+					<div class="input-group">
+						<span class="input-group-addon" id="characterinputdesc">→</span>
+						<input type="text" id="characters" class="form-control" maxlength="63" aria-describedby="characterinputdesc">
+						<span class="input-group-btn">
+							<a role="button" class="btn btn-success" id="characterbutton">Send</a>
+						</span>
+					</div>
+					<br />
+					<div class="input-group">
+						<span class="input-group-addon" id="bytesinputdesc">→</span>
+						<input type="text" id="bytesinput" class="form-control" maxlength="512" aria-describedby="bytesinputdesc">
+						<span class="input-group-btn">
+							<a role="button" class="btn btn-info" id="bytesbutton">Send</a>
+						</span>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="input-group">
+						<label for="textmode">Display characters:</label>
+						<div class="radio">
+							<label><input type="radio" id="onebyone" checked="checked" name="textmode">One by one</label>
+						</div>
+						<div class="radio">
+							<label><input type="radio" id="scroll" name="textmode">Scrolling</label>
+						</div>
+					</div>
 				</div>
 			</div>
         </div>
-
 
         <div class="container collapse" id="settings">
             <div class="container">
@@ -213,21 +269,13 @@
                         <h3>Gradient</h3>
                         <p>Change the orientation of the gradient effect. This only applies to the pixels not to the display on this webpage.</p>
                         <div class="radio">
-                            <label><input type="radio" id="lefttoright" checked="checked" name="gradientorientation">Left to right</label>
+                            <label><input type="radio" id="horizontal" checked="checked" name="gradientorientation">Left to right</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" id="toptobottom" name="gradientorientation">Up to down</label>
-                        </div>
-                        <h3>Individual color</h3>
-                        <p>Choose the initial configuration of the individual mode. Rainbow</p>
-                        <div class="radio">
-                            <label><input type="radio" id="rainbow" checked="checked" name="individualmode">Rainbow</label>
+                            <label><input type="radio" id="vertical" name="gradientorientation">Up to down</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" id="alloff" name="individualmode">All off</label>
-                        </div>
-                        <div class="radio">
-                            <label><input type="radio" id="random" name="individualmode">Random</label>
+                            <label><input type="radio" id="consecutive" name="gradientorientation">Consecutive</label>
                         </div>
                         <h3>Character</h3>
                         <p>Configure the delay that is used when displaying multiple characters</p>
@@ -243,12 +291,6 @@
                         </div>
                         <h3>Text send </h3>
                         <p>Change how text is displayed on the LED strip.</p>
-                        <div class="radio">
-                            <label><input type="radio" id="onebyone" checked="checked" name="textmode">One by one</label>
-                        </div>
-                        <div class="radio">
-                            <label><input type="radio" id="scroll" name="textmode">Scroll</label>
-                        </div>
 
 
 
@@ -284,30 +326,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- this one needs to be last for some reason, related to responsive table-->
-        <div class="container collapse" id="individual">
-            <div class="row">
-                <div class="col-lg-6">
-                    <label for="saturation">Saturation:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="saturationdesc">%</span>
-                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="92">
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <label for="value">Value:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="valuedesc">%</span>
-                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="16">
-                    </div>
-                </div>
-            </div>
-            <br />
-            <div class="table-responsive">
-                <table id="individualcontainer" class="table"></table>
-                <div>
-                </div>
 
 
                 <script src='http://jscolor.com/release/2.0/jscolor-2.0.4/jscolor.js'></script>
