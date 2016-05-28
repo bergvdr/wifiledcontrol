@@ -27,6 +27,10 @@ if(ws1 == undefined || ws1 == '') {
 var mysocket = new WebSocket(ws1);
 var heartbeat_msg = 'p', heartbeat_interval = null, missed_heartbeats = 0;
 
+//We need this for the individual leds, will be defined upon opening the
+//'individual' page
+var individualcolors = null;
+
 /*
  * === Receive Data from Websocket
  */
@@ -75,47 +79,52 @@ function sendgrad() {
     var leftcolor = document.getElementById('gradientbutton1').innerText;
     var rightcolor = document.getElementById('gradientbutton2').innerText;
     gradientbox.style.backgroundImage = '-webkit-linear-gradient(' + 'left' + ', #' + leftcolor + ', #' + rightcolor + ')';
-            gradientbox.style.backgroundImage = '-o-linear-gradient(' + 'right' + ', #' + leftcolor + ', #' + rightcolor + ')';
-                gradientbox.style.backgroundImage = '-moz-linear-gradient(' + 'left' + ', #' + leftcolor + ', #' + rightcolor + ')';
-                    gradientbox.style.backgroundImage = 'linear-gradient(' + 'to right' + ', #' + leftcolor + ', #' + rightcolor + ')';
-                        }
+    gradientbox.style.backgroundImage = '-o-linear-gradient(' + 'right' + ', #' + leftcolor + ', #' + rightcolor + ')';
+    gradientbox.style.backgroundImage = '-moz-linear-gradient(' + 'left' + ', #' + leftcolor + ', #' + rightcolor + ')';
+    gradientbox.style.backgroundImage = 'linear-gradient(' + 'to right' + ', #' + leftcolor + ', #' + rightcolor + ')';
+    mysocket.send('g'+leftcolor+rightcolor);
+}
 
-                        function sendindividual(ledcolors) {
-                            mysocket.send(ledcolors);
-                        }
-                        function sendindividualone(r,c,ledcolor) {
-                            mysocket.send("updating row "+r+" and col "+c+" with color #"+ledcolor);
-                        }
+function sendindividual() {
+    mysocket.send('I'+individualcolors);
+}
+function sendindividualone(r,c,ledcolor) {
+    // Send individual 'i', row 'R' <rownr>, column 'C'
+    // <colnr> and '#' ledcolor
+    // Or maybe just send the nr (r*rowsize + c)
+    mysocket.send("iR"+r+"C"+c+"#"+ledcolor);
+}
 
-                        function drawindividual() {
-                            var nrofcolumns = document.getElementById('individualcolumns').value;
-                            var nrofrows = document.getElementById('individualrows').value;
-                            var saturation = document.getElementById('saturation').value;
-                            var value = document.getElementById('value').value;
+function drawindividual() {
+    var nrofcolumns = document.getElementById('individualcolumns').value;
+    var nrofrows = document.getElementById('individualrows').value;
+    var saturation = document.getElementById('saturation').value;
+    var value = document.getElementById('value').value;
 
-                            $("#individualcontainer").empty();
+    $("#individualcontainer").empty();
 
-                            var ledcolors = '';
-                            var tot = nrofrows*nrofcolumns;
-                            var steps = 360/tot;
-                            for(var r = 0; r < nrofrows; r++) {
-                                var tr = document.createElement('tr');
-                                for(var c = 0; c < nrofcolumns; c++) {
-                                    var td = document.createElement('td');
-                                    var input = document.createElement('DIV');
-                                    input.className = "individualbutton"
-                                        var picker = new jscolor(input, {closable:'true', onFineChange:'sendindividualone('+r+','+c+',this)'});
-                                    picker.fromHSV(tot*steps, saturation, value);
-                                    ledcolors += picker;
-                                    td.appendChild(input);
-                                    tr.appendChild(td);
-                                    tot -= 1;
-                                }
-                                $("#individualcontainer").append(tr);
-                            }
+    var ledcolors = '';
+    var tot = nrofrows*nrofcolumns;
+    var steps = 360/tot;
+    for(var r = 0; r < nrofrows; r++) {
+        var tr = document.createElement('tr');
+        for(var c = 0; c < nrofcolumns; c++) {
+            var td = document.createElement('td');
+            var input = document.createElement('DIV');
+            input.className = "individualbutton"
+                var picker = new jscolor(input, {closable:'true', onFineChange:'sendindividualone('+r+','+c+',this)'});
+            picker.fromHSV(tot*steps, saturation, value);
+            ledcolors += picker;
+            td.appendChild(input);
+            tr.appendChild(td);
+            tot -= 1;
+        }
+        $("#individualcontainer").append(tr);
+    }
 
-                            //sendindividual(ledcolors);
-                        }
+    individualcolors = ledcolors;
+    //sendindividual(ledcolors);
+}
 
 // Hide all others when opening a section/view
 $(".nav a").on('click',function(e) {
@@ -232,9 +241,11 @@ $(document).ready(function() {
     //Add individual led control functionality
     $( "#saturation" ).change(function() {
         drawindividual();
+        sendindividual();
     });
     $( "#value" ).change(function() {
         drawindividual();
+        sendindividual();
     });
 
 

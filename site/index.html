@@ -74,11 +74,34 @@
             <br />
         </div>
 
+        <div class="container collapse" id="individual">
+            <div class="row">
+                <div class="col-lg-6">
+                    <label for="saturation">Saturation:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="saturationdesc">%</span>
+                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="90">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <label for="value">Value:</label>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="valuedesc">%</span>
+                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="80">
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="table-responsive">
+                <table id="individualcontainer" class="table"></table>
+            </div>
+        </div>
+
         <div class="container collapse" id="settings">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-3">
-                        <div id="settingslinks" class="list-group" id="sidebar">
+                    <div class="col-md-3" id="settingslinks">
+                        <div class="list-group">
                             <a href="#status" class="list-group-item">Status</a>
                             <a href="#websocketconf" class="list-group-item">Websocket configuration</a>
                             <a href="#ledconf" class="list-group-item">LED configuration</a>
@@ -88,7 +111,7 @@
                             <a href="#diagnostics" class="list-group-item">Diagnostics</a>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="settingscontent">
                         <h2 id="status">Status</h2>
                         <p>Websocket <strong id='ws1'>ws1</strong> 
                         <span class="hidden" id="connected">
@@ -175,7 +198,7 @@
                             <label for="wifipassword">Password:</label>
                             <div class="input-group">
                                 <span class="input-group-addon" id="wifipassworddesc">*</span>
-                                <input type="text" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
+                                <input type="password" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
                             </div>
                         </div>
                         <div class="form-group">
@@ -183,8 +206,8 @@
                             <button type="button" class="btn btn-warning">Apply</button>
                             <button type="button" class="btn btn-danger">Reset</button>
                         </div>
+                        <hr class="col-md-12">
 
-                        </p><hr class="col-md-12">
                         <h2 id="outputmode">Settings of output modes</h2>
                         <h3>Single color</h3>
                         <p>Apply on all pixels or set all black and update one by one</p>
@@ -258,29 +281,6 @@
             </div>
         </div>
 
-        <!-- this one needs to be last for some reason, related to responsive table-->
-        <div class="container collapse" id="individual">
-            <div class="row">
-                <div class="col-lg-6">
-                    <label for="saturation">Saturation:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="saturationdesc">%</span>
-                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="90">
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <label for="value">Value:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="valuedesc">%</span>
-                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="80">
-                    </div>
-                </div>
-            </div>
-            <br />
-            <div class="table-responsive">
-                <table id="individualcontainer" class="table"></table>
-                <div>
-                </div>
 
 
                 <script src='http://jscolor.com/release/2.0/jscolor-2.0.4/jscolor.js'></script>

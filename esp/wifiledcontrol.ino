@@ -67,8 +67,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                         sprintf(buf, "s%u", ++payload);
                         webSocket.sendTXT(num, payload);
                         Serial.printf("[%u] Got single color: %s\n", num, payload);
-                        RgbColor singlecolor(*payload);
-                        strip.ClearTo(singlecolor);
+                        //RgbColor singlecolor(*payload);
+                        //strip.ClearTo(singlecolor);
+                        strip.ClearTo(RgbColor(*payload));
                         strip.Show();
                     } else {
                         webSocket.sendTXT(num,"too short");  
@@ -86,6 +87,21 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t plengt
                         if(strcmp( (const char*) ++payload,"ping")==0) {
                             webSocket.sendTXT(num, "pong");
                         } else {
+                            webSocket.sendTXT(num, payload);
+                        }
+                    } else {
+                        webSocket.sendTXT(num,"a");  
+                    }
+                    break;
+                case 'w': case 'W': // Change wifi settings
+                    Serial.printf("[%u] Got message: %s with length %u\n", num, payload, plength);
+                    if(plength > 1) {
+                        if(strcmp( (const char*) ++payload,"reset")==0) {
+                            webSocket.sendTXT(num, "Resetting wifi...");
+                            WiFiManager wifiManager;
+                            WifiManager.resetSettings();
+                        } else {
+                            webSocket.sendTXT(num, "Changing wifi to SSID:");
                             webSocket.sendTXT(num, payload);
                         }
                     } else {
