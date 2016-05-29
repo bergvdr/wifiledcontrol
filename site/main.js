@@ -26,6 +26,8 @@ if(ws1 == undefined || ws1 == '') {
 //Set up the websocket connection
 var mysocket = new WebSocket(ws1);
 var heartbeat_msg = '>', heartbeat_interval = null, missed_heartbeats = 0;
+var individualmode = "rainbow";
+var charactercolor = '330000';
 
 //Prepare a charset (source http://pastebin.com/wHx3ZYm9)
 var charset = [
@@ -287,6 +289,9 @@ var charset = [
     ,0x00,0x24,0x66,0xFF,0x66,0x24,0x00,0x00 // 255. 
 ];
 
+function randint(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 
 /*
@@ -327,7 +332,10 @@ function onMessage(evt) {
     }
 }
 
-function getcharacter(character, colors="440100") {
+function setcharactercolor(hexcolor) {
+	charactercolor = hexcolor;
+}
+function getcharacter(character, colors=charactercolor) {
 	/*
 	 *	This only works with rowsize=colsize=8
 	 *  
@@ -372,17 +380,24 @@ function getcharacter(character, colors="440100") {
 
 /*
  * === Send Data to Websocket
+ * first value in the Uint8Array is the 'command'
+ * the rest is used to set the pixels
  */
+
+// setSinglecolor = 1
 function sendsinglecolor(hexcolor) {
-	var color = new Uint8Array(3);
-	color[0] = parseInt(hexcolor.substr(0,2), 16);
-	color[1] = parseInt(hexcolor.substr(2,2), 16);
-	color[2] = parseInt(hexcolor.substr(4,2), 16);
+	var color = new Uint8Array(4);
+	color[0] = 1; //Singlecolor
+	color[1] = parseInt(hexcolor.substr(0,2), 16);
+	color[2] = parseInt(hexcolor.substr(2,2), 16);
+	color[3] = parseInt(hexcolor.substr(4,2), 16);
 	mysocket.binaryType = 'arraybuffer';
 	mysocket.send(color);
 }
 
+// setGradient = 2
 function sendgrad() {
+	var colors = new Uint8Array(7);
     var gradientbox = document.getElementById('gradientbox');
     var leftcolor = document.getElementById('gradientbutton1').innerText;
     var rightcolor = document.getElementById('gradientbutton2').innerText;
@@ -390,24 +405,37 @@ function sendgrad() {
     gradientbox.style.backgroundImage = '-o-linear-gradient(' + 'right' + ', #' + leftcolor + ', #' + rightcolor + ')';
     gradientbox.style.backgroundImage = '-moz-linear-gradient(' + 'left' + ', #' + leftcolor + ', #' + rightcolor + ')';
     gradientbox.style.backgroundImage = 'linear-gradient(' + 'to right' + ', #' + leftcolor + ', #' + rightcolor + ')';
+
+	colors[0] = 2; // Gradient
+	colors[1] = parseInt(leftcolor.substr(0,2), 16);
+	colors[2] = parseInt(leftcolor.substr(2,2), 16);
+	colors[3] = parseInt(leftcolor.substr(4,2), 16);
+	colors[4] = parseInt(rightcolor.substr(0,2), 16);
+	colors[5] = parseInt(rightcolor.substr(2,2), 16);
+	colors[6] = parseInt(rightcolor.substr(4,2), 16);
+	mysocket.binaryType = 'arraybuffer';
+	mysocket.send(colors);
 }
 
+// setPixel = 3
+function sendindividualone(r,c,hexcolor) {
+	var indexedcolor = new Uint8Array(6);
+	indexedcolor[0] = 3;
+	indexedcolor[1] = parseInt(r);
+	indexedcolor[2] = parseInt(c);
+	indexedcolor[3] = parseInt(hexcolor.substr(0,2), 16);
+	indexedcolor[4] = parseInt(hexcolor.substr(2,2), 16);
+	indexedcolor[5] = parseInt(hexcolor.substr(4,2), 16);
+	mysocket.binaryType = 'arraybuffer';
+    mysocket.send(indexedcolor);
+}
+
+// setPixels = 4
 function sendindividual(colors) {
 	mysocket.binaryType = 'arraybuffer';
     mysocket.send(colors);
 }
 
-function sendindividualone(r,c,hexcolor) {
-	var indexedcolor = new Uint8Array(5);
-	indexedcolor[0] = parseInt(r);
-	indexedcolor[1] = parseInt(c);
-	indexedcolor[2] = parseInt(hexcolor.substr(0,2), 16);
-	indexedcolor[3] = parseInt(hexcolor.substr(2,2), 16);
-	indexedcolor[4] = parseInt(hexcolor.substr(4,2), 16);
-	console.log(indexedcolor);
-	mysocket.binaryType = 'arraybuffer';
-    mysocket.send(indexedcolor);
-}
 
 function drawindividual() {
     var nrofcolumns = document.getElementById('individualcolumns').value;
@@ -417,8 +445,9 @@ function drawindividual() {
 
     var total = nrofrows*nrofcolumns;
     var steps = 360/total;
-	var index = 0;
-	var colors = new Uint8Array(3*total);
+	var index = 1;
+	var colors = new Uint8Array(1 + 3*total);
+	colors[0] = 4;
 
     $("#individualcontainer").empty();
     for(var r = 0; r < nrofrows; r++) {
@@ -429,7 +458,13 @@ function drawindividual() {
             input.className = "individualbutton";
 
 			var picker = new jscolor(input, {closable:'true', onFineChange:'sendindividualone('+r+','+c+',this.toString())'});
-            picker.fromHSV(total*steps, saturation, value);
+			if(individualmode == "rainbow") {
+				picker.fromHSV(total*steps, saturation, value);
+			} else if(individualmode == "off") {
+				picker.fromRGB(0,0,0);
+			} else if(individualmode == "random") {
+				picker.fromHSV(randint(0,255), saturation, value);
+			}
 
 			hexcolor = picker.toString();
 			colors[index] = parseInt(hexcolor.substr(0,2), 16);
@@ -568,6 +603,11 @@ $(document).ready(function() {
         drawindividual();
     });
 
+	// Colorpicker for sending characters
+    var $charactercolorbutton = $("<div id='charactercolor' class='singlecolorbutton'>");
+    $charactercolorbutton.appendTo($("#charactercolorplace"));
+    var charColorPicker = new jscolor(document.getElementById('charactercolor'), {closable:'true', onFineChange:'setcharactercolor(this.toString())', value:'331111'});
+
 	// Send characters
     $('#characterbutton').click( function(e) {
         e.preventDefault();
@@ -575,18 +615,74 @@ $(document).ready(function() {
 		nr_of_characters = characters.length;
 		if(nr_of_characters == 1) {
 			mysocket.binaryType = 'arraybuffer';
-			mysocket.send(getcharacter(characters.charCodeAt(0)));
+			var character = new Uint8Array(1 + 64*3);
+			character[0] = 5;
+			character.set(getcharacter(characters.charCodeAt(0)), 1);
+			mysocket.send(character);
 		} else if(nr_of_characters > 1) {
-			var concatcharacters = new Uint8Array(64*3*nr_of_characters);
+			var concatcharacters = new Uint8Array(1 + 64*3*nr_of_characters);
+			concatcharacters[0] = 5;
 			for(var i = 0; i < nr_of_characters; i++) {
 				concatcharacters.set(getcharacter(characters.charCodeAt(i)),
-					i*64*3);
+					1 + i*64*3);
 			}
-			console.log(concatcharacters);
 			mysocket.binaryType = 'arraybuffer';
 			mysocket.send(concatcharacters);
 		}
     });
+
+    $('#characters').change(function() {
+		var hexChar = ["0", "1", "2", "3", "4", "5", "6", "7","8", "9", "A", "B", "C", "D", "E", "F"];
+		var bytestring = '';
+        var characters = $('#characters').val();
+		for(var i=0; i<characters.length; i++) {
+			index = 8*characters.charCodeAt(i);
+			bytes = charset.slice(index, index+8);
+			//bytestring += bytes;
+			for(var j=0; j<bytes.length; j++) {
+				b = bytes[j]
+				bytestring += hexChar[(b >> 4) & 0x0f] + hexChar[b & 0x0f];
+			}
+			bytestring += ' ';
+		}
+        $('#bytesinput').val(bytestring);
+	});
+
+	function hexchars(chr) {
+		var hexChar = ["0", "1", "2", "3", "4", "5", "6", "7","8", "9", "A", "B", "C", "D", "E", "F"];
+		return hexChar.indexOf(chr) != -1;
+	}
+    $('#bytesbutton').click( function(e) {
+        e.preventDefault();
+        bytestring = $('#bytesinput').val();
+		result = bytestring.match(/\b[0-9A-Fa-f]{16}\b/g);
+		
+		var characters = new Uint8Array(1+64*3*result.length);
+		characters[0] = 5;
+		var count = 1;
+		var mask = [128,64,32,16,8,4,2,1];
+		colors = charactercolor;
+
+		for(var c=0; c<result.length; c++) {
+			for(var j=0; j<16; j+=2) {
+				value = parseInt(result[c][j],16) * 16 + parseInt(result[c][j+1],16);
+				for(var i = 0; i < mask.length; i++) {
+					if( (value & mask[i]) == 0) {
+						characters[count] = 0;
+						characters[count+1] = 0;
+						characters[count+2] = 0;
+					} else {
+						characters[count] = parseInt(colors.substr(0,2), 16);
+						characters[count+1] = parseInt(colors.substr(2,2), 16);
+						characters[count+2] = parseInt(colors.substr(4,2), 16);
+					}
+					count += 3;
+				}
+			}
+		}
+		mysocket.binaryType = 'arraybuffer';
+		mysocket.send(characters);
+	});
 
     // Settings
     $('#ws1').text(ws1);
@@ -598,7 +694,7 @@ $(document).ready(function() {
     });
     $('#pingbutton').click( function(e) {
         e.preventDefault();
-        mysocket.send('Pping');
+        mysocket.send('>ping');
     });
     $('#heapbutton').click( function(e) {
         e.preventDefault();
@@ -619,6 +715,40 @@ $(document).ready(function() {
         drawindividual();
     });
 
+	$("input[name=singlecolormode]").change(function () {
+		if(this.id == "all") {
+			mysocket.send('sa');
+		}
+		else if(this.id == "one") {
+			mysocket.send('sc');
+		}
+	});
+	$("input[name=gradientorientation]").change(function () {
+		if(this.id == "horizontal") {
+			mysocket.send('oh');
+		}
+		else if(this.id == "vertical") {
+			mysocket.send('ov');
+		} else if(this.id == "consecutive") {
+			mysocket.send('oc');
+		}
+	});
+	$("input[name=individualmode]").change(function () {
+		if(this.id == "rainbow") {
+			individualmode = "rainbow";
+			console.log("rainbow");
+			drawindividual();
+		}
+		else if(this.id == "off") {
+			individualmode = "off";
+			console.log("off");
+			drawindividual();
+		} else if(this.id == "random") {
+			individualmode = "random";
+			console.log("rainbow");
+			drawindividual();
+		}
+	});
 	$('#applydelay').click( function(e) {
         e.preventDefault();
         delay_amount = $('#characterdelay').val();
