@@ -53,31 +53,70 @@ NeoGamma<NeoGammaTableMethod> colorGamma;
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 // > User editable settings
+uint32_t pixelindex = 0;
 uint32_t delay_amount = 500;
 uint8_t orientation = 0;
 uint8_t style = 0;
-uint32_t pixelindex = 0;
+uint8_t textstyle = 0;
+bool color_correct = true;
 
 /*
  * === Display Functions ===
  */
 
+// This function creates a (non) gamma-corrected RGB color from RGB values
+RgbColor getColor(uint8_t *rgb, bool color_correct=color_correct) {
+    RgbColor color;
+    if (color_correct) {
+        color = colorGamma.Correct(RgbColor(rgb[0], rgb[1], rgb[2]));
+    } else {
+        color = RgbColor(rgb[0], rgb[1], rgb[2]);
+    }
+
+    return color;
+}
+
+// Clear the strip (off)
+void clear() {
+    strip.ClearTo(black);
+    strip.Show();
+}
+
+// Rotate the strip
+void rotate(uint8_t rotationCount = PanelWidth) {
+    if(orientation == 0) {
+        strip.RotateLeft(rotationCount);
+    } else {
+        strip.RotateRight(rotationCount);
+    }
+    strip.Show();
+}
+
+void shift(uint8_t shiftCount = PanelWidth) {
+    if(orientation == 0) {
+        strip.ShiftLeft(shiftCount);
+    } else {
+        strip.ShiftRight(shiftCount);
+    }
+    strip.Show();
+}
 
 // Set the entire strip to a single color
-void singleColor(uint8_t *color) {
-	RgbColor gcolor = colorGamma.Correct(RgbColor(color[0], color[1], color[2]));
+void singleColor(uint8_t *rgb) {
+	RgbColor color = getColor(rgb);
+
 	if(style == 0) {
-		strip.ClearTo(gcolor);
+		strip.ClearTo(color);
 	} else {
-		strip.SetPixelColor(++pixelindex%PixelCount, gcolor);
+		strip.SetPixelColor(++pixelindex%PixelCount, color);
 	}
 	strip.Show();
 }
 
-// Set a gradient
-void setGradient(uint8_t *colors) {
-	HslColor startColor = HslColor(RgbColor(colors[0], colors[1], colors[2]));
-    HslColor stopColor = HslColor(RgbColor(colors[3], colors[4], colors[5]));
+// Set a gradient from two consecutive rgb values
+void setGradient(uint8_t *rgb) {
+	HslColor startColor = HslColor(getColor(rgb, false));
+    HslColor stopColor = HslColor(getColor(rgb+3, false));
 
 	if (orientation == 0) {
 		// Vertical
@@ -85,7 +124,7 @@ void setGradient(uint8_t *colors) {
 		{
 			float progress = index / static_cast<float>(PanelWidth - 1);
 			RgbColor color = HslColor::LinearBlend<NeoHueBlendShortestDistance>(startColor, stopColor, progress);
-			color = colorGamma.Correct(color);
+            if(color_correct) color = colorGamma.Correct(color);
 			for (uint16_t row = 0; row < PanelHeight; row++) {
 				strip.SetPixelColor(index*PanelWidth + row, color);
 			}
@@ -96,7 +135,7 @@ void setGradient(uint8_t *colors) {
 		{
 			float progress = index / static_cast<float>(PanelWidth - 1);
 			RgbColor color = HslColor::LinearBlend<NeoHueBlendShortestDistance>(startColor, stopColor, progress);
-			color = colorGamma.Correct(color);
+            if(color_correct) color = colorGamma.Correct(color);
 			for (uint16_t row = 0; row < PanelHeight; row++) {
 				strip.SetPixelColor(row*PanelWidth + index, color);
 			}
@@ -107,7 +146,7 @@ void setGradient(uint8_t *colors) {
 		{
 			float progress = index / static_cast<float>(PixelCount - 1);
 			RgbColor color = HslColor::LinearBlend<NeoHueBlendShortestDistance>(startColor, stopColor, progress);
-			color = colorGamma.Correct(color);
+            if(color_correct) color = colorGamma.Correct(color);
 			strip.SetPixelColor(index, color);
 		}
 	}
@@ -115,17 +154,19 @@ void setGradient(uint8_t *colors) {
 }
 
 // Set a specific pixel according to topology
+// The first two values are row, col; the next three are rgb
 void setPixel(uint8_t *poscol) {
-	RgbColor gcolor = colorGamma.Correct(RgbColor(poscol[2], poscol[3], poscol[4]));
+	RgbColor gcolor = getColor(poscol+2);
 	strip.SetPixelColor(topo.Map(poscol[0], poscol[1]), gcolor);
 	strip.Show();
 }
 
 // Set the entire board sequentially
+// Expect pixels to point to RGB values
 void setPanel(uint8_t *pixels) {
 	for(uint16_t i = 0; i < PixelCount; i++) {
-		RgbColor gcolor = colorGamma.Correct(RgbColor(*pixels++, *pixels++, *pixels++));
-		strip.SetPixelColor(i, gcolor);
+		strip.SetPixelColor(i, getColor(pixels));
+        pixels += 3;
 	}
 	strip.Show();
 }
@@ -136,16 +177,47 @@ void setPanels(uint8_t *pixels, uint8_t nrofpanels, uint8_t client) {
 	 * Multiple entire board/strips received
 	 * Display them with configured delay
 	 */
-	for(uint16_t j = 0; j < nrofpanels; j++) {
-		strip.ClearTo(black);
-		strip.Show();
-		for(uint16_t i = 0; i < PixelCount; i++) {
-			strip.SetPixelColor(i, RgbColor(*pixels++, *pixels++, *pixels++));
-		}
-		strip.Show();
-		delay(delay_amount); // TODO: change this so the esp doesn't hang
-		webSocket.sendTXT(client, "<"); //Send a ping because the delay is blocking
-	}
+    if(textstyle == 0) { // One by one
+        for(uint16_t j = 0; j < nrofpanels; j++) {
+            strip.ClearTo(black);
+            strip.Show();
+            for(uint16_t i = 0; i < PixelCount; i++) {
+                strip.SetPixelColor(i, getColor(pixels));
+                pixels += 3;
+            }
+            strip.Show();
+            delay(delay_amount); // TODO: change this so the esp doesn't hang
+            webSocket.sendTXT(client, "<"); //Send a pong because the delay is blocking
+        }
+	} else { // Scrolling
+        if(orientation == 0) { //Orientation effects the shifting
+            for(uint16_t j = 0; j < nrofpanels; j++) {
+                for(uint16_t h = 0; h < PanelHeight; h++) {
+                    shift(8);
+                    for(uint16_t i = 0; i < PanelWidth; i++) {
+                        strip.SetPixelColor(PixelCount-PanelWidth+i, getColor(pixels));
+                        pixels += 3;
+                    }
+                    strip.Show();
+                    delay(delay_amount / 8); // TODO: change this so the esp doesn't hang
+                }
+                webSocket.sendTXT(client, "<"); //Send a pong because the delay is blocking
+            }
+        } else { //This currently displays chars mirrored :)
+            for(uint16_t j = 0; j < nrofpanels; j++) {
+                for(uint16_t h = 0; h < PanelHeight; h++) {
+                    shift(8);
+                    for(uint16_t i = 0; i < PanelWidth; i++) {
+                        strip.SetPixelColor(i, getColor(pixels));
+                        pixels += 3;
+                    }
+                    strip.Show();
+                    delay(delay_amount / 8); // TODO: change this so the esp doesn't hang
+                }
+                webSocket.sendTXT(client, "<"); //Send a pong because the delay is blocking
+            }
+        }
+    }
 }
 
 /*
@@ -181,7 +253,18 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 		 * Updating the LEDs is done in a binary message and without sending an reply
 		 */
 		switch(payload[0]) {
-			char buf[10]; //Output buffer for small messages
+        char buf[10]; //Output buffer for small messages
+		case 'c':
+		case 'C': // Change whether we gamma correct
+            if(payload[1] == 'y') {
+                color_correct = true;
+				webSocket.sendTXT(client, "ITurned gamma correction on");
+            } else {
+				webSocket.sendTXT(client, "ITurned gamma correction off");
+                color_correct = false;
+            }
+			Serial.printf("[%u] INFO: color_correct: %d with length %u\n", client, color_correct, plength);
+			break;
 		case 'd':
 		case 'D': // Configure delay
 			delay_amount = charstr2int(++payload, plength - 1);
@@ -207,6 +290,17 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 			else if(payload[1] == 'c') {
 				orientation = 2; // consecutive
 				webSocket.sendTXT(client, "IChanged gradient orientation to consecutive");
+			}
+			break;
+		case 'r':
+		case 'R': // Change the style of updating, one at a time or rolling (scrolling)
+			if(payload[1] == 'o') {
+				textstyle = 0; // One by one
+				webSocket.sendTXT(client, "IChanged charcter style to one-by-one");
+			}
+			else if(payload[1] == 's') {
+				textstyle = 1; // Scrolling
+				webSocket.sendTXT(client, "IChanged singlecolor style to scrolling");
 			}
 			break;
 		case 's':
@@ -278,6 +372,15 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 					Serial.printf("multiple boards");
 					setPanels(payload + 1, (plength - 1) / (PixelCount * 3), client);
 				}
+				break;
+			case 253: // Shift the strip
+				shift(payload[1]);
+				break;
+			case 254: // Rotate the strip
+				rotate(payload[1]);
+				break;
+			case 255: // Clear the strip
+				clear();
 				break;
 			default:
 				Serial.printf("[%u] Unknown command [%d] with length %u\n",

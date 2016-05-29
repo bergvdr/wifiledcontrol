@@ -683,6 +683,34 @@ $(document).ready(function() {
 		mysocket.binaryType = 'arraybuffer';
 		mysocket.send(characters);
 	});
+    $('#rotationbutton').click( function(e) {
+        e.preventDefault();
+		var rotationcount = new Uint8Array(1+1);
+        rotationcount[0] = 254;
+        rotationcountstr = $('#rotationcount').val();
+		rotationcount[1] = parseInt(rotationcountstr.match(/[0-9]+/) % 256);
+        console.log(rotationcount);
+		mysocket.binaryType = 'arraybuffer';
+		mysocket.send(rotationcount);
+    });
+    $('#shiftbutton').click( function(e) {
+        e.preventDefault();
+		var shiftcount = new Uint8Array(1+1);
+        shiftcount[0] = 253;
+        shiftcountstr = $('#shiftcount').val();
+		shiftcount[1] = parseInt(shiftcountstr.match(/[0-9]+/) % 256);
+        console.log(shiftcount);
+		mysocket.binaryType = 'arraybuffer';
+		mysocket.send(shiftcount);
+    });
+	$("input[name=textmode]").change(function () {
+		if(this.id == "onebyone") {
+			mysocket.send('ro');
+		}
+		else if(this.id == "scroll") {
+			mysocket.send('rs');
+		}
+	});
 
     // Settings
     $('#ws1').text(ws1);
@@ -715,6 +743,14 @@ $(document).ready(function() {
         drawindividual();
     });
 
+	$("input[name=gammacorrection]").change(function () {
+		if(this.id == "yes") {
+			mysocket.send('cy');
+		}
+		else if(this.id == "no") {
+			mysocket.send('cn');
+		}
+	});
 	$("input[name=singlecolormode]").change(function () {
 		if(this.id == "all") {
 			mysocket.send('sa');

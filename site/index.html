@@ -126,7 +126,23 @@
 						<span class="input-group-addon" id="bytesinputdesc">→</span>
 						<input type="text" id="bytesinput" class="form-control" maxlength="512" aria-describedby="bytesinputdesc">
 						<span class="input-group-btn">
-							<a role="button" class="btn btn-info" id="bytesbutton">Send</a>
+							<a role="button" class="btn btn-success" id="bytesbutton">Send</a>
+						</span>
+					</div>
+					<br />
+					<div class="input-group">
+						<span class="input-group-addon" id="rotationcountdesc">R</span>
+						<input type="text" id="rotationcount" class="form-control" maxlength="3" aria-describedby="bytesinputdesc">
+						<span class="input-group-btn">
+							<a role="button" class="btn btn-info" id="rotationbutton">Rotate</a>
+						</span>
+					</div>
+					<br />
+					<div class="input-group">
+						<span class="input-group-addon" id="shiftcountdesc">S</span>
+						<input type="text" id="shiftcount" class="form-control" maxlength="3" aria-describedby="bytesinputdesc">
+						<span class="input-group-btn">
+							<a role="button" class="btn btn-info" id="shiftbutton">Shift</a>
 						</span>
 					</div>
 				</div>
@@ -206,8 +222,7 @@
                         </div>
                         <hr class="col-md-12">
 
-                        <h1 id="notice">TODO: Everything below here isn't implemented yet</h1>
-                        <h2 id="ledconf">LED Configuration</h2>
+                        <h2 id="ledconf">TODO: LED Configuration</h2>
                         <p>Specify the layout of attached LED matrix or strip here.</p>
                         <div class="form-group">
                             <label for="individualcolumns">Columns:</label>
@@ -233,7 +248,7 @@
                         </div>
                         <hr class="col-md-12">
 
-                        <h2 id="wificonf">Wifi Configuration</h2>
+                        <h2 id="wificonf">TODO: Wifi Configuration</h2>
                         <p>Here you can change the wireless network the microcontroller connects to or reset the configuration such that it will start in access-point (AP) mode again.</p>
                         <div class="form-group">
                             <label for="wifissid">Set the name of the access point to connect to:</label>
@@ -257,6 +272,14 @@
 
                         </p><hr class="col-md-12">
                         <h2 id="outputmode">Settings of output modes</h2>
+                        <h3>Gamme correction</h3>
+                        <p>Apply gamma correction to the pixels so the configured colors are closer to the displayed colors</p>
+                        <div class="radio">
+                            <label><input type="radio" id="yes" checked="checked" name="gammacorrection">Yes</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" id="no" name="gammacorrection">No</label>
+                        </div>
                         <h3>Single color</h3>
                         <p>Apply on all pixels or set all black and update one by one</p>
                         <div class="radio">
@@ -269,10 +292,10 @@
                         <h3>Gradient</h3>
                         <p>Change the orientation of the gradient effect. This only applies to the pixels not to the display on this webpage.</p>
                         <div class="radio">
-                            <label><input type="radio" id="horizontal" checked="checked" name="gradientorientation">Left to right</label>
+                            <label><input type="radio" id="horizontal" checked="checked" name="gradientorientation">Left to right (horizontal)</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" id="vertical" name="gradientorientation">Up to down</label>
+                            <label><input type="radio" id="vertical" name="gradientorientation">Up to down (vertical)</label>
                         </div>
                         <div class="radio">
                             <label><input type="radio" id="consecutive" name="gradientorientation">Consecutive</label>
@@ -285,19 +308,19 @@
                                 <input type="text" id="characterdelay" class="form-control" aria-describedby="characterdelaydesc">
                                 <span class="input-group-addon" id="characterdelaydesc">ms</span>
                             </div>
+                            <br />
 							<div class="form-group">
 								<button type="button" class="btn btn-info" id="applydelay">Apply</button>
 							</div>
                         </div>
-                        <h3>Text send </h3>
-                        <p>Change how text is displayed on the LED strip.</p>
 
 
-
-                        <h2>Firmware update</h2>
+                        <h2>TODO: Firmware update</h2>
                         <p>All of the settings for time zone and daylight savings.</p>
                         <hr class="col-md-12">
 
+
+                        <!-- More ideas
                         <h2 id="console">Serial Console</h2>
                         <div class="form-group">
                             <label for="serialconsole">Serial console:</label>
@@ -309,8 +332,6 @@
                         <p>Run various diagnostics. Output is displayed in the console
                         above.</p>
                         <button class="btn btn-info" contenteditable="false">Run Network Diagnostic</button>
-
-                        <!-- More ideas
                             <h3>Binary send </h3>
                             <p>Send bytes straight to the pixels</p>
                             <h2>Font output</h2>
