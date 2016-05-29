@@ -1,6 +1,6 @@
 /*
  *  Control WS2812 leds over Wifi with ESP8266
- *  Version 0.2
+ *  Version 0.3
  *  https://github.com/bergvdr/wifiledcontrol
  *
  *  Uses Websockets
