@@ -27,12 +27,12 @@
 
 // > Neopixel related
 typedef ColumnMajorLayout MyPanelLayout;
-const uint8_t PanelWidth = 8;  // 8 pixel x 8 pixel matrix of leds
-const uint8_t PanelHeight = 8;
+uint8_t PanelWidth = 8;  // 8 pixel x 8 pixel matrix of leds
+uint8_t PanelHeight = 8;
 const uint8_t PixelPin = 2;  // make sure to set this to the correct pin, ignored for Esp8266
 NeoTopology<MyPanelLayout> topo(PanelWidth, PanelHeight);
 
-const uint16_t PixelCount = PanelWidth * PanelHeight;
+uint16_t PixelCount = PanelWidth * PanelHeight;
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
 
 // Colors
@@ -54,13 +54,29 @@ NeoGamma<NeoGammaTableMethod> colorGamma;
 // > Websocket
 WebSocketsServer webSocket = WebSocketsServer(81);
 
-// > User editable settings
+// > User editable settings (put these in a struct?)
 uint32_t pixelindex = 0;
 uint32_t delay_amount = 500;
 uint8_t orientation = 0;
 uint8_t style = 0;
 uint8_t textstyle = 0;
 bool color_correct = true;
+
+/*
+ * === Setting Functions ===
+ */
+
+void setPanelColumns(uint8_t *nrofpixels, size_t length) {
+    PanelWidth = charstr2int(nrofpixels, length);
+    Serial.printf("Setting height/rows to %d", PanelWidth);
+    // TODO
+}
+void setPanelRows(uint8_t *nrofpixels, size_t length) {
+    PanelHeight = charstr2int(nrofpixels, length);
+    Serial.printf("Setting height/rows to %d", PanelHeight);
+    // This breaks the board?
+}
+
 
 /*
  * === Display Functions ===
@@ -236,6 +252,8 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 		webSocket.sendTXT(client, "Connected");
 		Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", client, ip[0], ip[1], ip[2], ip[3], payload);
 
+        // TODO: Send current settings to client
+
 		// Set an initial configuration to orient the panel
 		strip.ClearTo(black);
 		strip.SetPixelColor(topo.Map(left, top), green);
@@ -294,6 +312,17 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 				webSocket.sendTXT(client, "IChanged gradient orientation to consecutive");
 			}
 			break;
+		case 'p':
+		case 'P': // Change panel (strip) size
+			if(payload[1] == 'c') {
+				// Set column size
+                setPanelColumns(payload+2, plength);
+                webSocket.sendTXT(client, "IChanged panel size");
+			} else if(payload[1] == 'r') {
+                setPanelRows(payload+2, plength);
+                webSocket.sendTXT(client, "IChanged panel size");
+            }
+			break;
 		case 'r':
 		case 'R': // Change the style of updating, one at a time or rolling (scrolling)
 			if(payload[1] == 'o') {
@@ -316,6 +345,22 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 				webSocket.sendTXT(client, "IChanged singlecolor style to consecutive");
 			}
 			break;
+		case 'w':
+		case 'W': // Change wifi settings
+			if(payload[1] == 'r') {
+                // Reset settings
+                WiFiManager wifiManager;
+				webSocket.sendTXT(client, "IResetting Wifi...");
+                wifiManager.resetSettings();
+                //wifiManager.resetSettings();
+                wifiManager.setAPCallback(configModeCallback);
+			}
+			else if(payload[1] == 's') {
+				// Connect to specified SSID
+				webSocket.sendTXT(client, "ITrying to connect to SSID");
+                // 32 bytes SSID
+			}
+			break;
 		case '>': // ping, will reply '<' to show we are alive
 			// Serial.printf("[%u] Got message: %s with length %u\n", client, payload, plength);
 			if(plength > 1) {
@@ -329,7 +374,6 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 			} else {
 				webSocket.sendTXT(client, "<");
 			}
-
 			break;
 		default:
 			Serial.printf("[%u] Unknown command: %s with length %u\n", client, payload, plength);

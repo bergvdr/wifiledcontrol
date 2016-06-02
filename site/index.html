@@ -48,8 +48,6 @@
                         <li class="active"><a data-toggle="collapse" href="#home">Home</a></li>
                         <li><a data-toggle="collapse" href="#singlecolor">Single Color</a></li>
                         <li><a data-toggle="collapse" href="#gradient">Gradient</a></li>
-                        <li><a data-toggle="collapse" href="#individual">Individual</a></li>
-                        <li><a data-toggle="collapse" href="#character">Character</a></li>
                         <li><a id="settingstext" data-toggle="collapse" href="#settings">Settings</a></li>
                     </ul>
                 </div>
@@ -63,129 +61,56 @@
             </div>
         </div>
 
-        <div class="container collapse" id="singlecolor"></div>
+        <div class="container collapse" id="singlecolor">
+            <button id='singlecolorbutton' class="singlecolorbutton
+                jscolor {closable: 'true', onFineChange: 'sendsinglecolor(this.toString())',
+                value:'004444'}"></button>
+        </div>
 
         <div class="container collapse" id="gradient">
             <div id="gradientbox" class="gradientbox"></div>
             <br />
             <div class="border row">
-                <div class="border col-md-6" id="gradientleftcol"></div>
-                <div class="border col-md-6" id="gradientrightcol"></div>
-            </div>
-            <br />
-        </div>
+                <div class="border col-md-6" id="gradientleftcol">
+                    <button id='gradientbuttonleft' class="gradientbutton
+                        jscolor {closable: 'true', onFineChange: 'sendgradient()',
+                        value:'640000'}"></button>
+                </div>
 
-        <div class="container collapse" id="individual">
-            <div class="row">
-                <div class="col-md-4">
-					<div class="input-group">
-                    <label for="saturation">Mode:</label>
-                        <div class="radio">
-                            <label><input type="radio" id="rainbow" checked="checked" name="individualmode">Rainbow</label>
-                            <label><input type="radio" id="off" name="individualmode">All off</label>
-                            <label><input type="radio" id="random" name="individualmode">Random</label>
-                        </div>
-					</div>
-                </div>
-                <div class="col-md-4">
-                    <label for="saturation">Saturation:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="saturationdesc">%</span>
-                        <input type="text" id="saturation" class="form-control" aria-describedby="saturationdesc" value="92">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label for="value">Value:</label>
-                    <div class="input-group">
-                        <span class="input-group-addon" id="valuedesc">%</span>
-                        <input type="text" id="value" class="form-control" aria-describedby="valuedesc" value="16">
-                    </div>
+                <div class="border col-md-6" id="gradientrightcol">
+                    <button id='gradientbuttonright' class="gradientbutton
+                        jscolor {closable: 'true', onFineChange: 'sendgradient()',
+                        value:'646400'}"></button>
                 </div>
             </div>
-
             <br />
-            <div class="table-responsive">
-                <table id="individualcontainer" class="table"></table>
-			</div>
-		</div>
-
-        <div class="container collapse" id="character">
-			<div id="charactercolorplace"></div>
-			<br />
-			<div class="row">
-				<div class="col-md-8">
-					<div class="input-group">
-						<span class="input-group-addon" id="characterinputdesc">→</span>
-						<input type="text" id="characters" class="form-control" maxlength="63" aria-describedby="characterinputdesc">
-						<span class="input-group-btn">
-							<a role="button" class="btn btn-success" id="characterbutton">Send</a>
-						</span>
-					</div>
-					<br />
-					<div class="input-group">
-						<span class="input-group-addon" id="bytesinputdesc">→</span>
-						<input type="text" id="bytesinput" class="form-control" maxlength="512" aria-describedby="bytesinputdesc">
-						<span class="input-group-btn">
-							<a role="button" class="btn btn-success" id="bytesbutton">Send</a>
-						</span>
-					</div>
-					<br />
-					<div class="input-group">
-						<span class="input-group-addon" id="rotationcountdesc">R</span>
-						<input type="text" id="rotationcount" class="form-control" maxlength="3" aria-describedby="bytesinputdesc">
-						<span class="input-group-btn">
-							<a role="button" class="btn btn-info" id="rotationbutton">Rotate</a>
-						</span>
-					</div>
-					<br />
-					<div class="input-group">
-						<span class="input-group-addon" id="shiftcountdesc">S</span>
-						<input type="text" id="shiftcount" class="form-control" maxlength="3" aria-describedby="bytesinputdesc">
-						<span class="input-group-btn">
-							<a role="button" class="btn btn-info" id="shiftbutton">Shift</a>
-						</span>
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="input-group">
-						<label for="textmode">Display characters:</label>
-						<div class="radio">
-							<label><input type="radio" id="onebyone" checked="checked" name="textmode">One by one</label>
-						</div>
-						<div class="radio">
-							<label><input type="radio" id="scroll" name="textmode">Scrolling</label>
-						</div>
-					</div>
-				</div>
-			</div>
         </div>
 
         <div class="container collapse" id="settings">
             <div class="container">
                 <div class="row">
                     <div class="col-md-3">
-                        <div id="settingslinks" class="list-group" id="sidebar">
+                        <div id="settingslinks" class="list-group">
                             <a href="#status" class="list-group-item">Status</a>
                             <a href="#websocketconf" class="list-group-item">Websocket configuration</a>
+                            <a href="#outputmode" class="list-group-item">Settings of output modes</a>
                             <a href="#ledconf" class="list-group-item">LED configuration</a>
                             <a href="#wificonf" class="list-group-item">Wifi configuration</a>
-                            <a href="#outputmode" class="list-group-item">Settings of output modes</a>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <h2 id="status">Status</h2>
                         <p>Websocket <strong id='ws1'>ws1</strong> 
-                        <span class="hidden" id="connected">
-                            <span class="label label-success">Connected</span>
-                            <span class="badge">42 Hz</span>
-                        </span>
-                        <span class="hidden" id="notconnected">
-                            <span class="label label-danger">No connection!</span>
-                        </span>
+                            <span class="hidden" id="connected">
+                                <span class="label label-success">Connected</span>
+                            </span>
+                            <span class="hidden" id="notconnected">
+                                <span class="label label-danger">No connection!</span>
+                            </span>
                         </p>
                         <div class="form-group">
                             <label for="messages">Messages:</label>
-                            <textarea class="form-control" rows="10" id="messages"></textarea>
+                            <textarea class="form-control" rows="8" id="messages"></textarea>
                         </div>
                         <div class="form-group">
                             <a role="button" class="btn btn-info" id="pingbutton">Ping</a>
@@ -206,7 +131,7 @@
                         <div class="form-group">
                             <label for="websocket1">Websocket #1 IP or hostname:</label>
                             <div class="input-group">
-                                <span class="input-group-addon" id="websocket1desc">></span>
+                                <span class="input-group-addon" id="websocket1desc"></span>
                                 <input type="text" id="websocket1" class="form-control" aria-describedby="websocket1desc">
                             </div>
                         </div>
@@ -215,57 +140,9 @@
                         </div>
                         <hr class="col-md-12">
 
-                        <h2 id="ledconf">TODO: LED Configuration</h2>
-                        <p>Specify the layout of attached LED matrix or strip here.</p>
-                        <div class="form-group">
-                            <label for="individualcolumns">Columns:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="nrofcolumnsdesc">#</span>
-                                <input type="text" id="individualcolumns" class="form-control" aria-describedby="nrofcolumsdesc" value="8">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="individualrows">Rows:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="nrofrowsdesc">#</span>
-                                <input type="text" id="individualrows" class="form-control" aria-describedby="nrofrowsdesc" value="8">
-                            </div>
-                        </div>
-                        <p>You can also set the PIN to send the configuration to</p>
-                        <div class="form-group">
-                            <label for="pinout">Pin:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="pinoutdesc">|</span>
-                                <input type="text" id="pinout" class="form-control" aria-describedby="pinoutdesc">
-                            </div>
-                        </div>
-                        <hr class="col-md-12">
 
-                        <h2 id="wificonf">TODO: Wifi Configuration</h2>
-                        <p>Here you can change the wireless network the microcontroller connects to or reset the configuration such that it will start in access-point (AP) mode again.</p>
-                        <div class="form-group">
-                            <label for="wifissid">Set the name of the access point to connect to:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="wifissiddesc">SSID</span>
-                                <input type="text" id="wifissid" class="form-control" aria-describedby="wifissiddesc">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="wifipassword">Password:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="wifipassworddesc">*</span>
-                                <input type="text" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn btn-info">Scan</button>
-                            <button type="button" class="btn btn-warning">Apply</button>
-                            <button type="button" class="btn btn-danger">Reset</button>
-                        </div>
-
-                        </p><hr class="col-md-12">
                         <h2 id="outputmode">Settings of output modes</h2>
-                        <h3>Gamme correction</h3>
+                        <h3>Gamma correction</h3>
                         <p>Apply gamma correction to the pixels so the configured colors are closer to the displayed colors</p>
                         <div class="radio">
                             <label><input type="radio" id="yes" checked="checked" name="gammacorrection">Yes</label>
@@ -293,24 +170,47 @@
                         <div class="radio">
                             <label><input type="radio" id="consecutive" name="gradientorientation">Consecutive</label>
                         </div>
-                        <h3>Character</h3>
-                        <p>Configure the delay that is used when displaying multiple characters</p>
+
+                        <h2 id="ledconf">LED Configuration</h2>
+                        <p>Specify the layout of attached LED matrix or strip here.</p>
                         <div class="form-group">
-                            <label for="characterdelay">Delay:</label>
+                            <label for="pixelcolumns">Columns:</label>
                             <div class="input-group">
-                                <input type="text" id="characterdelay" class="form-control" aria-describedby="characterdelaydesc">
-                                <span class="input-group-addon" id="characterdelaydesc">ms</span>
+                                <span class="input-group-addon" id="nrofcolumnsdesc">#</span>
+                                <input type="text" id="pixelcolumns" class="form-control" aria-describedby="nrofcolumsdesc" value="8">
                             </div>
-                            <br />
-							<div class="form-group">
-								<button type="button" class="btn btn-info" id="applydelay">Apply</button>
-							</div>
                         </div>
+                        <div class="form-group">
+                            <label for="pixelrows">Rows:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="nrofrowsdesc">#</span>
+                                <input type="text" id="pixelrows" class="form-control" aria-describedby="nrofrowsdesc" value="8">
+                            </div>
+                        </div>
+                        <hr class="col-md-12">
 
-
-                        <h2>TODO: Firmware update</h2>
+                        <h2 id="wificonf">TODO: Wifi Configuration</h2>
+                        <p>Here you can change the wireless network the microcontroller connects to or reset the configuration such that it will start in access-point (AP) mode again.</p>
+                        <div class="form-group">
+                            <label for="wifissid">Set the name of the access point to connect to:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="wifissiddesc">SSID</span>
+                                <input type="text" id="wifissid" class="form-control" aria-describedby="wifissiddesc">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="wifipassword">Password:</label>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="wifipassworddesc">*</span>
+                                <input type="text" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info" id="scanbutton">Scan</button>
+                            <button type="button" class="btn btn-warning" id="applybutton">Apply</button>
+                            <button type="button" class="btn btn-danger" id="resetbutton">Reset</button>
+                        </div>
                     </div>
-                    <div class="span9"></div>
                 </div>
             </div>
         </div>
@@ -318,7 +218,6 @@
 
                 <script src='http://jscolor.com/release/2.0/jscolor-2.0.4/jscolor.js'></script>
                 <script src='http://code.jquery.com/jquery-1.12.3.min.js'></script>
-                <script>window.jQuery || document.write('<script src="/static/js/jquery.min.js"><\/script>')</script>
                 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
                 <script src='main.js'></script>
     </body>
