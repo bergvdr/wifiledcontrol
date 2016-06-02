@@ -648,10 +648,6 @@ $(document).ready(function() {
         $('#bytesinput').val(bytestring);
 	});
 
-	function hexchars(chr) {
-		var hexChar = ["0", "1", "2", "3", "4", "5", "6", "7","8", "9", "A", "B", "C", "D", "E", "F"];
-		return hexChar.indexOf(chr) != -1;
-	}
     $('#bytesbutton').click( function(e) {
         e.preventDefault();
         bytestring = $('#bytesinput').val();
@@ -665,7 +661,7 @@ $(document).ready(function() {
 
 		for(var c=0; c<result.length; c++) {
 			for(var j=0; j<16; j+=2) {
-				value = parseInt(result[c][j],16) * 16 + parseInt(result[c][j+1],16);
+				value = parseInt(result[c][j], 16) * 16 + parseInt(result[c][j+1],16);
 				for(var i = 0; i < mask.length; i++) {
 					if( (value & mask[i]) == 0) {
 						characters[count] = 0;
