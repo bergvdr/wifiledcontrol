@@ -17,14 +17,6 @@ body, html {
     justify-content: center;
     align-items: center;
 }
-.individualbutton {
-    height: 64px;
-    width: 64px;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 .gradientbox {
     height: 128px;
     background: -webkit-linear-gradient(left, red, yellow);
