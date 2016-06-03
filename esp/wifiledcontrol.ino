@@ -27,13 +27,15 @@
 
 // > Neopixel related
 typedef ColumnMajorLayout MyPanelLayout;
-uint8_t PanelWidth = 8;  // 8 pixel x 8 pixel matrix of leds
-uint8_t PanelHeight = 8;
+NeoTopology<MyPanelLayout>* topo = NULL;
+NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>* strip = NULL;
 const uint8_t PixelPin = 2;  // make sure to set this to the correct pin, ignored for Esp8266
-NeoTopology<MyPanelLayout> topo(PanelWidth, PanelHeight);
 
-uint16_t PixelCount = PanelWidth * PanelHeight;
-NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(PixelCount, PixelPin);
+// Neopixel locations for use in panel (topo)
+uint16_t left;
+uint16_t right;
+uint16_t top;
+uint16_t bottom;
 
 // Colors
 #define colorSaturation 128
@@ -41,11 +43,6 @@ RgbColor red(colorSaturation / 4, 0, 0);
 RgbColor green(0, colorSaturation / 4, 0);
 RgbColor black(0);
 
-// Neopixel locations for use in panel
-const uint16_t left = 0;
-const uint16_t right = PanelWidth - 1;
-const uint16_t top = 0;
-const uint16_t bottom = PanelHeight - 1;
 
 // Neopixel gamma correction
 // NeoGamma<NeoGammaEquationMethod> colorGamma;
@@ -55,6 +52,9 @@ NeoGamma<NeoGammaTableMethod> colorGamma;
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 // > User editable settings (put these in a struct?)
+uint16_t PanelWidth = 8;
+uint16_t PanelHeight = 8;
+uint32_t PixelCount = PanelWidth * PanelHeight;
 uint32_t pixelindex = 0;
 uint32_t delay_amount = 500;
 uint8_t orientation = 0;
@@ -63,18 +63,74 @@ uint8_t textstyle = 0;
 bool color_correct = true;
 
 /*
+ * === WiFi Functions ===
+ */
+
+void configModeCallback (WiFiManager *myWiFiManager) {
+	Serial.println("Entered config mode");
+	Serial.println(WiFi.softAPIP());
+	Serial.println(myWiFiManager->getConfigPortalSSID());
+}
+
+void startWifi(bool reset = false) {
+	// WiFi
+	WiFiManager wifiManager;
+
+	// Reset settings - for testing
+    if (reset) {
+		Serial.println("Resetting WiFi settings...");
+        wifiManager.resetSettings();
+    }
+
+	wifiManager.setAPCallback(configModeCallback);
+	if(!wifiManager.autoConnect("WifiLedControl", "ledblink")) {
+		Serial.println("failed to connect and hit timeout");
+		ESP.reset();
+		delay(1000);
+	}
+
+	Serial.println("Connected");
+	Serial.println(WiFi.localIP());
+	Serial.println(WiFi.gatewayIP());
+	Serial.println(WiFi.subnetMask());
+}
+
+
+/*
  * === Setting Functions ===
  */
 
 void setPanelColumns(uint8_t *nrofpixels, size_t length) {
     PanelWidth = charstr2int(nrofpixels, length);
-    Serial.printf("Setting height/rows to %d", PanelWidth);
-    // TODO
+    Serial.printf("Setting height/rows to %d\n", PanelWidth);
+	SetPixelTopo(PanelWidth, PanelHeight);
 }
+
 void setPanelRows(uint8_t *nrofpixels, size_t length) {
     PanelHeight = charstr2int(nrofpixels, length);
-    Serial.printf("Setting height/rows to %d", PanelHeight);
-    // This breaks the board?
+    Serial.printf("Setting height/rows to %d\n", PanelHeight);
+	SetPixelTopo(PanelWidth, PanelHeight);
+}
+
+void SetPixelTopo(uint16_t PanelWidth, uint16_t PanelHeight) {
+    if (topo != NULL) {  
+       delete topo; 
+    }
+	topo = new NeoTopology<MyPanelLayout>(PanelWidth, PanelHeight);
+    // Neopixel locations for use in panel
+    right = PanelWidth - 1;
+    bottom = PanelHeight - 1;
+	PixelCount = PanelWidth * PanelHeight;
+	SetPixelCount(PixelCount);
+}
+void SetPixelCount(uint32_t PixelCount) {
+	// Shameless copy-paste of NeoPixelBus documentation
+    if (strip != NULL) {  
+       delete strip; 
+    }
+    strip = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>(PixelCount, PixelPin);
+    strip->Begin();
+    Serial.printf("Created strip of %d columns (width) and %d rows (height) totalling %d pixels\n", PanelWidth, PanelHeight, PixelCount);
 }
 
 
@@ -96,27 +152,27 @@ RgbColor getColor(uint8_t *rgb, bool color_correct = color_correct) {
 
 // Clear the strip (off)
 void clear() {
-	strip.ClearTo(black);
-	strip.Show();
+	strip->ClearTo(black);
+	strip->Show();
 }
 
 // Rotate the strip
-void rotate(uint8_t rotationCount = PanelWidth) {
+void rotate(uint16_t rotationCount = PanelWidth) {
 	if(orientation == 0) {
-		strip.RotateLeft(rotationCount);
+		strip->RotateLeft(rotationCount);
 	} else {
-		strip.RotateRight(rotationCount);
+		strip->RotateRight(rotationCount);
 	}
-	strip.Show();
+	strip->Show();
 }
 
-void shift(uint8_t shiftCount = PanelWidth) {
+void shift(uint16_t shiftCount = PanelWidth) {
 	if(orientation == 0) {
-		strip.ShiftLeft(shiftCount);
+		strip->ShiftLeft(shiftCount);
 	} else {
-		strip.ShiftRight(shiftCount);
+		strip->ShiftRight(shiftCount);
 	}
-	strip.Show();
+	strip->Show();
 }
 
 // Set the entire strip to a single color
@@ -124,11 +180,11 @@ void singleColor(uint8_t *rgb) {
 	RgbColor color = getColor(rgb);
 
 	if(style == 0) {
-		strip.ClearTo(color);
+		strip->ClearTo(color);
 	} else {
-		strip.SetPixelColor(++pixelindex % PixelCount, color);
+		strip->SetPixelColor(++pixelindex % PixelCount, color);
 	}
-	strip.Show();
+	strip->Show();
 }
 
 // Set a gradient from two consecutive rgb values
@@ -144,7 +200,7 @@ void setGradient(uint8_t *rgb) {
 			RgbColor color = HslColor::LinearBlend<NeoHueBlendShortestDistance>(startColor, stopColor, progress);
 			if(color_correct) color = colorGamma.Correct(color);
 			for (uint16_t row = 0; row < PanelHeight; row++) {
-				strip.SetPixelColor(index * PanelWidth + row, color);
+				strip->SetPixelColor(index * PanelWidth + row, color);
 			}
 		}
 	} else if (orientation == 1) {
@@ -155,38 +211,38 @@ void setGradient(uint8_t *rgb) {
 			RgbColor color = HslColor::LinearBlend<NeoHueBlendShortestDistance>(startColor, stopColor, progress);
 			if(color_correct) color = colorGamma.Correct(color);
 			for (uint16_t row = 0; row < PanelHeight; row++) {
-				strip.SetPixelColor(row * PanelWidth + index, color);
+				strip->SetPixelColor(row * PanelWidth + index, color);
 			}
 		}
 	} else {
-		// Consecutive
-		for (uint16_t index = 0; index < PixelCount; index++)
+		// Consecutive, for strips
+		for (uint32_t index = 0; index < PixelCount; index++)
 		{
 			float progress = index / static_cast<float>(PixelCount - 1);
 			RgbColor color = HslColor::LinearBlend<NeoHueBlendShortestDistance>(startColor, stopColor, progress);
 			if(color_correct) color = colorGamma.Correct(color);
-			strip.SetPixelColor(index, color);
+			strip->SetPixelColor(index, color);
 		}
 	}
-	strip.Show();
+	strip->Show();
 }
 
 // Set a specific pixel according to topology
 // The first two values are row, col; the next three are rgb
 void setPixel(uint8_t *poscol) {
 	RgbColor color = getColor(poscol + 2);
-	strip.SetPixelColor(topo.Map(poscol[0], poscol[1]), color);
-	strip.Show();
+	strip->SetPixelColor(topo->Map(poscol[0], poscol[1]), color);
+	strip->Show();
 }
 
 // Set the entire board sequentially
 // Expect pixels to point to RGB values
 void setPanel(uint8_t *pixels) {
-	for(uint16_t i = 0; i < PixelCount; i++) {
-		strip.SetPixelColor(i, getColor(pixels));
+	for(uint32_t i = 0; i < PixelCount; i++) {
+		strip->SetPixelColor(i, getColor(pixels));
 		pixels += 3;
 	}
-	strip.Show();
+	strip->Show();
 }
 
 // Set multiple panels
@@ -197,13 +253,13 @@ void setPanels(uint8_t *pixels, uint8_t nrofpanels, uint8_t client) {
 	 */
 	if(textstyle == 0) { // One by one
 		for(uint16_t j = 0; j < nrofpanels; j++) {
-			strip.ClearTo(black);
-			strip.Show();
-			for(uint16_t i = 0; i < PixelCount; i++) {
-				strip.SetPixelColor(i, getColor(pixels));
+			strip->ClearTo(black);
+			strip->Show();
+			for(uint32_t i = 0; i < PixelCount; i++) {
+				strip->SetPixelColor(i, getColor(pixels));
 				pixels += 3;
 			}
-			strip.Show();
+			strip->Show();
 			delay(delay_amount); // TODO: change this so the esp doesn't hang
 			webSocket.sendTXT(client, "<"); //Send a pong because the delay is blocking
 		}
@@ -213,10 +269,10 @@ void setPanels(uint8_t *pixels, uint8_t nrofpanels, uint8_t client) {
 				for(uint16_t h = 0; h < PanelHeight; h++) {
 					shift(8);
 					for(uint16_t i = 0; i < PanelWidth; i++) {
-						strip.SetPixelColor(PixelCount - PanelWidth + i, getColor(pixels));
+						strip->SetPixelColor(PixelCount - PanelWidth + i, getColor(pixels));
 						pixels += 3;
 					}
-					strip.Show();
+					strip->Show();
 					delay(delay_amount / 8); // TODO: change this so the esp doesn't hang
 				}
 				webSocket.sendTXT(client, "<"); //Send a pong because the delay is blocking
@@ -226,10 +282,10 @@ void setPanels(uint8_t *pixels, uint8_t nrofpanels, uint8_t client) {
 				for(uint16_t h = 0; h < PanelHeight; h++) {
 					shift(8);
 					for(uint16_t i = 0; i < PanelWidth; i++) {
-						strip.SetPixelColor(i, getColor(pixels));
+						strip->SetPixelColor(i, getColor(pixels));
 						pixels += 3;
 					}
-					strip.Show();
+					strip->Show();
 					delay(delay_amount / 8); // TODO: change this so the esp doesn't hang
 				}
 				webSocket.sendTXT(client, "<"); //Send a pong because the delay is blocking
@@ -255,12 +311,12 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
         // TODO: Send current settings to client
 
 		// Set an initial configuration to orient the panel
-		strip.ClearTo(black);
-		strip.SetPixelColor(topo.Map(left, top), green);
-		strip.SetPixelColor(topo.Map(right, top), red);
-		strip.SetPixelColor(topo.Map(left, bottom), red);
-		strip.SetPixelColor(topo.Map(right, bottom), black);
-		strip.Show();
+		strip->ClearTo(black);
+		strip->SetPixelColor(topo->Map(left, top), green);
+		strip->SetPixelColor(topo->Map(right, top), red);
+		strip->SetPixelColor(topo->Map(left, bottom), red);
+		strip->SetPixelColor(topo->Map(right, bottom), black);
+		strip->Show();
 	}
 	break;
 	case WStype_TEXT:
@@ -316,11 +372,11 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 		case 'P': // Change panel (strip) size
 			if(payload[1] == 'c') {
 				// Set column size
-                setPanelColumns(payload+2, plength);
-                webSocket.sendTXT(client, "IChanged panel size");
+                setPanelColumns(payload + 2, plength - 2);
+                webSocket.sendTXT(client, "ISet panel width (columns)");
 			} else if(payload[1] == 'r') {
-                setPanelRows(payload+2, plength);
-                webSocket.sendTXT(client, "IChanged panel size");
+                setPanelRows(payload + 2, plength - 2);
+                webSocket.sendTXT(client, "ISet panel height (rows)");
             }
 			break;
 		case 'r':
@@ -328,10 +384,6 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 			if(payload[1] == 'o') {
 				textstyle = 0; // One by one
 				webSocket.sendTXT(client, "IChanged charcter style to one-by-one");
-			}
-			else if(payload[1] == 's') {
-				textstyle = 1; // Scrolling
-				webSocket.sendTXT(client, "IChanged singlecolor style to scrolling");
 			}
 			break;
 		case 's':
@@ -349,16 +401,13 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 		case 'W': // Change wifi settings
 			if(payload[1] == 'r') {
                 // Reset settings
-                WiFiManager wifiManager;
-				webSocket.sendTXT(client, "IResetting Wifi...");
-                wifiManager.resetSettings();
-                //wifiManager.resetSettings();
-                wifiManager.setAPCallback(configModeCallback);
+                startWifi(true);
 			}
 			else if(payload[1] == 's') {
 				// Connect to specified SSID
 				webSocket.sendTXT(client, "ITrying to connect to SSID");
-                // 32 bytes SSID
+                // 2 byte length of SSID
+
 			}
 			break;
 		case '>': // ping, will reply '<' to show we are alive
@@ -366,8 +415,8 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 			if(plength > 1) {
 				if(strcmp( (const char*) ++payload, "ping") == 0) {
 					webSocket.sendTXT(client, "pong");
-					strip.ClearTo(black);
-					strip.Show();
+					strip->ClearTo(black);
+					strip->Show();
 				} else {
 					webSocket.sendTXT(client, payload);
 				}
@@ -439,11 +488,6 @@ void webSocketEvent(uint8_t client, WStype_t type, uint8_t * payload, size_t ple
 	}
 }
 
-void configModeCallback (WiFiManager *myWiFiManager) {
-	Serial.println("Entered config mode");
-	Serial.println(WiFi.softAPIP());
-	Serial.println(myWiFiManager->getConfigPortalSSID());
-}
 
 void setup() {
 	delay(500);
@@ -452,28 +496,16 @@ void setup() {
 	Serial.begin(115200);
 
 	// WiFi
-	WiFiManager wifiManager;
-	// Reset settings - for testing
-	//wifiManager.resetSettings();
-	wifiManager.setAPCallback(configModeCallback);
-	if(!wifiManager.autoConnect("WifiLedControl", "ledblink")) {
-		Serial.println("failed to connect and hit timeout");
-		ESP.reset();
-		delay(1000);
-	}
-	Serial.println("Connected");
-	Serial.println(WiFi.localIP());
-	Serial.println(WiFi.gatewayIP());
-	Serial.println(WiFi.subnetMask());
+	startWifi();
 
 	// Start Websocket
 	webSocket.begin();
 	webSocket.onEvent(webSocketEvent);
 
 	// Reset LED strip
-	strip.Begin();
-	strip.ClearTo(green);
-	strip.Show();
+	SetPixelTopo(PanelWidth, PanelHeight); //Configure an initial strip
+	strip->ClearTo(green);
+	strip->Show();
 }
 
 void loop() {

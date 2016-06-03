@@ -31,9 +31,11 @@ var heartbeat_msg = '>', heartbeat_interval = null, missed_heartbeats = 0;
  * === Receive Data from Websocket
  */
 function onMessage(evt) {
-    // Show we are connected
+    // Reset missed heartbeat - connection alive
     missed_heartbeats=0;
-    $('#settingstext').css('color', '#048C00');
+
+    // Show we are connected
+    wsconnected();
 
     // Processed the received data
     var answer = evt.data[0];
@@ -64,7 +66,11 @@ function onMessage(evt) {
             break;
     }
 }
-
+function wsconnected() {
+    $('#settingstext').css('color', '#048C00');
+    $('#connected').removeClass('hidden');
+    $('#notconnected').addClass('hidden');
+}
 // When the websocket connection fails
 function wslost(msg) {
     $('#settingstext').css('color', '#ff0000');
@@ -73,6 +79,7 @@ function wslost(msg) {
     document.getElementById("messages").value = document.getElementById("messages").value + "Closing connection: " + msg + "\n";
     mysocket.close();
 }
+
 
 /*
  * === Send Data to Websocket
@@ -235,13 +242,15 @@ $(document).ready(function() {
 
     // LED configuration
     $( "#pixelcolumns" ).change(function() {
-        mysocket.send('pc'+$("#pixelcolumns").val());
     });
     $( "#pixelrows" ).change(function() {
+    });
+    $('#setpanelbutton').click( function(e) {
         mysocket.send('pr'+$("#pixelrows").val());
+        mysocket.send('pc'+$("#pixelcolumns").val());
     });
 
-    // Wifi configuration
+    // Wifi reset
     $('#resetbutton').click( function(e) {
         mysocket.send('wr');
     });

@@ -57,7 +57,7 @@
         <div class="container collapse in" id="home">
             <div class="jumbotron">
                 <h1>WifiLED Control</h1>
-                <p>A simple webpage to control LEDs attached to a TCP enabled microcontroller using websockets.</p>
+                <p>A simple webpage to control LEDs attached to a WiFi enabled microcontroller using websockets.</p>
             </div>
         </div>
 
@@ -89,7 +89,7 @@
         <div class="container collapse" id="settings">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div id="settingslinks" class="list-group">
                             <a href="#status" class="list-group-item">Status</a>
                             <a href="#websocketconf" class="list-group-item">Websocket configuration</a>
@@ -97,8 +97,12 @@
                             <a href="#ledconf" class="list-group-item">LED configuration</a>
                             <a href="#wificonf" class="list-group-item">Wifi configuration</a>
                         </div>
+                        <div class="form-group">
+                            <label for="messages">Messages:</label>
+                            <textarea class="form-control" rows="8" id="messages"></textarea>
+                        </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-8">
                         <h2 id="status">Status</h2>
                         <p>Websocket <strong id='ws1'>ws1</strong> 
                             <span class="hidden" id="connected">
@@ -109,13 +113,9 @@
                             </span>
                         </p>
                         <div class="form-group">
-                            <label for="messages">Messages:</label>
-                            <textarea class="form-control" rows="8" id="messages"></textarea>
-                        </div>
-                        <div class="form-group">
                             <a role="button" class="btn btn-info" id="pingbutton">Ping</a>
                             <a role="button" class="btn btn-info" id="heapbutton">Heap</a>
-                            <a role="button" class="btn btn-info" id="clearbutton">Clear</a>
+                            <a role="button" class="btn btn-info" id="clearbutton">Clear messages</a>
                         </div>
                         <div class="form-group">
                             <label for="websocket1name">Websocket Name (eg.  Livingroom):</label>
@@ -168,7 +168,7 @@
                             <label><input type="radio" id="vertical" name="gradientorientation">Up to down (vertical)</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" id="consecutive" name="gradientorientation">Consecutive</label>
+                            <label><input type="radio" id="consecutive" name="gradientorientation">Consecutive (for a strip)</label>
                         </div>
 
                         <h2 id="ledconf">LED Configuration</h2>
@@ -187,27 +187,12 @@
                                 <input type="text" id="pixelrows" class="form-control" aria-describedby="nrofrowsdesc" value="8">
                             </div>
                         </div>
+                        <button type="button" class="btn btn-info" id="setpanelbutton">Set</button>
                         <hr class="col-md-12">
 
-                        <h2 id="wificonf">TODO: Wifi Configuration</h2>
-                        <p>Here you can change the wireless network the microcontroller connects to or reset the configuration such that it will start in access-point (AP) mode again.</p>
+                        <h2 id="wificonf">Wifi Configuration</h2>
+                        <p>Here you can reset the ESP Wifi configuration such that it will start in access-point (AP) mode again.</p>
                         <div class="form-group">
-                            <label for="wifissid">Set the name of the access point to connect to:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="wifissiddesc">SSID</span>
-                                <input type="text" id="wifissid" class="form-control" aria-describedby="wifissiddesc">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="wifipassword">Password:</label>
-                            <div class="input-group">
-                                <span class="input-group-addon" id="wifipassworddesc">*</span>
-                                <input type="text" id="wifipassword" class="form-control" aria-describedby="wifipassworddesc">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn btn-info" id="scanbutton">Scan</button>
-                            <button type="button" class="btn btn-warning" id="applybutton">Apply</button>
                             <button type="button" class="btn btn-danger" id="resetbutton">Reset</button>
                         </div>
                     </div>
